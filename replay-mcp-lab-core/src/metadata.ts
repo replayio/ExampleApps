@@ -125,6 +125,27 @@ export const labScenarios: LabScenario[] = [
     testFile: "tests/passing/profiling.spec.ts",
     toolsCovered: ["ProfileStatements", "ProfileSampling", "ProfileGraph", "ExecutionDelay"],
   },
+  {
+    id: "stale-closure",
+    title: "Stale Closure",
+    kind: "diagnostic-failure",
+    testFile: "tests/failures/stale-closure.spec.ts",
+    toolsCovered: ["DescribePoint", "Evaluate", "GetStack", "ReactRenders", "ConsoleMessages"],
+  },
+  {
+    id: "async-race",
+    title: "Async Race",
+    kind: "diagnostic-failure",
+    testFile: "tests/failures/async-race.spec.ts",
+    toolsCovered: ["NetworkRequest", "ExecutionDelay", "GetStack", "ReactRenders", "ConsoleMessages"],
+  },
+  {
+    id: "index-key-list",
+    title: "Index-Keyed List",
+    kind: "diagnostic-failure",
+    testFile: "tests/failures/index-key-list.spec.ts",
+    toolsCovered: ["ReactComponentTree", "ReactRenders", "DescribePoint", "GetPointComponent"],
+  },
 ];
 
 export const toolGroups = {

@@ -105,6 +105,52 @@ export function registerPlaywrightFailureSpec() {
   });
 }
 
+export function registerStaleClosureSpec() {
+  test("stale closure snapshot lags behind the latest state", async ({ page }) => {
+    await page.goto("/stale-closure");
+    await waitForLabHydration(page);
+    const scenario = page.getByTestId("stale-closure-scenario");
+    await expect(scenario).toBeVisible();
+    await scenario.getByTestId("stale-closure-schedule").click();
+    await scenario.getByTestId("stale-closure-increment").click();
+    await scenario.getByTestId("stale-closure-increment").click();
+    await scenario.getByTestId("stale-closure-increment").click();
+    await expect(page.getByTestId("stale-closure-count")).toHaveText("count:3");
+    await expect(page.getByTestId("stale-closure-snapshot")).toHaveText("captured:3", {
+      timeout: 2000,
+    });
+  });
+}
+
+export function registerAsyncRaceSpec() {
+  test("async race condition resolves out of order", async ({ page }) => {
+    await page.goto("/async-race");
+    await waitForLabHydration(page);
+    const scenario = page.getByTestId("async-race-scenario");
+    await expect(scenario).toBeVisible();
+    const input = scenario.getByTestId("async-race-input");
+    await input.pressSequentially("abc", { delay: 30 });
+    await expect(page.getByTestId("async-race-result")).toHaveText("result:abc", {
+      timeout: 2000,
+    });
+  });
+}
+
+export function registerIndexKeyListSpec() {
+  test("index-keyed list keeps toggle state on the correct row after removal", async ({
+    page,
+  }) => {
+    await page.goto("/index-key-list");
+    await waitForLabHydration(page);
+    const scenario = page.getByTestId("index-key-list-scenario");
+    await expect(scenario).toBeVisible();
+    await scenario.getByTestId("toggle-btn-row-2").click();
+    await expect(page.getByTestId("toggle-row-2")).toHaveText("on");
+    await scenario.getByTestId("remove-row-1").click();
+    await expect(page.getByTestId("toggle-row-2")).toHaveText("on");
+  });
+}
+
 export function registerProfilingSpec() {
   test("profiling creates bounded CPU and dependency graph activity", async ({ page }) => {
     await page.goto("/profiling");

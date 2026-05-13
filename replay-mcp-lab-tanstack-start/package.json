@@ -1,0 +1,40 @@
+{
+  "name": "@replayio/mcp-lab-tanstack-start",
+  "version": "0.0.0",
+  "private": true,
+  "sideEffects": false,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev --host 127.0.0.1 --port 4312",
+    "build": "vite build && tsc --noEmit",
+    "preview": "vite preview --host 127.0.0.1 --port 4412",
+    "start": "node .output/server/index.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "playwright test tests/passing --project chromium",
+    "record:passing": "playwright test tests/passing --project replay-chromium",
+    "record:failures": "node ../replay-mcp-lab-core/scripts/run-expected-failures.mjs playwright test tests/failures --project replay-chromium",
+    "record:all": "npm run record:passing && npm run record:failures",
+    "upload:recordings": "node ../replay-mcp-lab-core/scripts/update-manifest.mjs --framework tanstack-start",
+    "mcp:smoke": "node ../replay-mcp-lab-core/scripts/mcp-smoke.mjs recordings.manifest.json",
+    "validate:manifest": "node ../replay-mcp-lab-core/scripts/validate-manifest.mjs recordings.manifest.json"
+  },
+  "dependencies": {
+    "@replayio/mcp-lab-core": "file:../replay-mcp-lab-core",
+    "@tanstack/react-router": "1.169.2",
+    "@tanstack/react-start": "1.167.65",
+    "nitro": "3.0.260429-beta",
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.60.0",
+    "@replayio/playwright": "5.0.3",
+    "replayio": "1.8.2",
+    "@types/node": "25.7.0",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.1",
+    "typescript": "6.0.3",
+    "vite": "8.0.12"
+  }
+}

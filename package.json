@@ -1,0 +1,22 @@
+{
+  "name": "replay-mcp-lab-examples",
+  "private": true,
+  "workspaces": [
+    "replay-mcp-lab-core",
+    "replay-mcp-lab-vite",
+    "replay-mcp-lab-next",
+    "replay-mcp-lab-tanstack-start"
+  ],
+  "scripts": {
+    "build": "npm run build -w @replayio/mcp-lab-vite && npm run build -w @replayio/mcp-lab-next && npm run build -w @replayio/mcp-lab-tanstack-start",
+    "ci:record": "npm run ci:record:vite && npm run ci:record:next && npm run ci:record:tanstack-start",
+    "ci:record:next": "npm run record:all -w @replayio/mcp-lab-next",
+    "ci:record:tanstack-start": "npm run record:all -w @replayio/mcp-lab-tanstack-start",
+    "ci:record:vite": "npm run record:all -w @replayio/mcp-lab-vite",
+    "install:replay": "replayio install",
+    "record:all": "npm run record:all -w @replayio/mcp-lab-vite && npm run record:all -w @replayio/mcp-lab-next && npm run record:all -w @replayio/mcp-lab-tanstack-start",
+    "typecheck": "npm run typecheck -w @replayio/mcp-lab-core && npm run typecheck -w @replayio/mcp-lab-vite && npm run typecheck -w @replayio/mcp-lab-next && npm run typecheck -w @replayio/mcp-lab-tanstack-start",
+    "test": "npm run test -w @replayio/mcp-lab-vite && npm run test -w @replayio/mcp-lab-next && npm run test -w @replayio/mcp-lab-tanstack-start",
+    "validate:manifests": "npm run validate:manifest -w @replayio/mcp-lab-vite && npm run validate:manifest -w @replayio/mcp-lab-next && npm run validate:manifest -w @replayio/mcp-lab-tanstack-start"
+  }
+}

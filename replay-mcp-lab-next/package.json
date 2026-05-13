@@ -1,0 +1,34 @@
+{
+  "name": "@replayio/mcp-lab-next",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --webpack --port 4311 --hostname 127.0.0.1",
+    "build": "next build --webpack",
+    "start": "next start --port 4311 --hostname 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "test": "playwright test tests/passing --project chromium",
+    "record:passing": "playwright test tests/passing --project replay-chromium",
+    "record:failures": "node ../replay-mcp-lab-core/scripts/run-expected-failures.mjs playwright test tests/failures --project replay-chromium",
+    "record:all": "npm run record:passing && npm run record:failures",
+    "upload:recordings": "node ../replay-mcp-lab-core/scripts/update-manifest.mjs --framework next",
+    "mcp:smoke": "node ../replay-mcp-lab-core/scripts/mcp-smoke.mjs recordings.manifest.json",
+    "validate:manifest": "node ../replay-mcp-lab-core/scripts/validate-manifest.mjs recordings.manifest.json"
+  },
+  "dependencies": {
+    "@replayio/mcp-lab-core": "file:../replay-mcp-lab-core",
+    "next": "16.2.6",
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.60.0",
+    "@replayio/playwright": "5.0.3",
+    "replayio": "1.8.2",
+    "@types/node": "25.7.0",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "typescript": "6.0.3"
+  }
+}

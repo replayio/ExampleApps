@@ -1,0 +1,39 @@
+{
+  "name": "@replayio/mcp-lab-core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": [
+    "./src/styles.css"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./api": "./src/api.ts",
+    "./metadata": "./src/metadata.ts",
+    "./playwright": "./src/playwright.ts",
+    "./styles.css": "./src/styles.css"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "validate:manifest": "node scripts/validate-manifest.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "@reduxjs/toolkit": "2.11.2",
+    "@tanstack/react-query": "5.100.10",
+    "lucide-react": "1.14.0",
+    "react-redux": "9.2.0",
+    "zustand": "5.0.13"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.60.0",
+    "@types/node": "25.7.0",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "typescript": "6.0.3"
+  },
+  "peerDependencies": {
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
+  }
+}

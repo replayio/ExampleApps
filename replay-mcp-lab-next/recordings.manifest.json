@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "framework": "next",
+  "recordings": [
+    {
+      "scenario": "happy-path",
+      "recordingId": "replace-with-happy-path",
+      "replayUrl": "",
+      "framework": "next",
+      "testFile": "tests/passing/happy-path.spec.ts",
+      "toolsCovered": [
+        "RecordingOverview",
+        "Screenshot",
+        "GetPointLink",
+        "PlaywrightSteps",
+        "ConsoleMessages",
+        "NetworkRequest",
+        "LocalStorage",
+        "UserInteractions"
+      ],
+      "generatedAt": "2026-05-13T02:45:47.965Z"
+    },
+    {
+      "scenario": "state-react",
+      "recordingId": "replace-with-state-react",
+      "replayUrl": "",
+      "framework": "next",
+      "testFile": "tests/passing/state-react.spec.ts",
+      "toolsCovered": [
+        "DescribePoint",
+        "Evaluate",
+        "GetStack",
+        "GetPointComponent",
+        "ReactComponentTree",
+        "ReactRenders",
+        "ReduxActions",
+        "ZustandStores",
+        "TanStackQueries"
+      ],
+      "generatedAt": "2026-05-13T02:45:47.967Z"
+    },
+    {
+      "scenario": "dom-layout",
+      "recordingId": "replace-with-dom-layout",
+      "replayUrl": "",
+      "framework": "next",
+      "testFile": "tests/passing/dom-layout.spec.ts",
+      "toolsCovered": [
+        "InspectElement",
+        "Screenshot",
+        "ReactComponentTree"
+      ],
+      "generatedAt": "2026-05-13T02:45:47.967Z"
+    },
+    {
+      "scenario": "source-logpoint",
+      "recordingId": "replace-with-source-logpoint",
+      "replayUrl": "",
+      "framework": "next",
+      "testFile": "tests/passing/source-logpoint.spec.ts",
+      "toolsCovered": [
+        "ListSources",
+        "ReadSource",
+        "SearchSources",
+        "Logpoint",
+        "DescribePoint",
+        "Evaluate",
+        "GetStack",
+        "ExecutionDelay",
+        "GetPointLink"
+      ],
+      "generatedAt": "2026-05-13T02:45:47.967Z"
+    },
+    {
+      "scenario": "runtime-exception",
+      "recordingId": "replace-with-runtime-exception",
+      "replayUrl": "",
+      "framework": "next",
+      "testFile": "tests/failures/runtime-exception.spec.ts",
+      "toolsCovered": [
+        "UncaughtException",
+        "ConsoleMessages",
+        "GetStack",
+        "ReadSource"
+      ],
+      "generatedAt": "2026-05-13T02:45:47.967Z"
+    },
+    {
+      "scenario": "react-exception",
+      "recordingId": "replace-with-react-exception",
+      "replayUrl": "",
+      "framework": "next",
+      "testFile": "tests/failures/react-exception.spec.ts",
+      "toolsCovered": [
+        "ReactException",
+        "ReactComponentTree",
+        "ReactRenders",
+        "ReadSource"
+      ],
+      "generatedAt": "2026-05-13T02:45:47.967Z"
+    },
+    {
+      "scenario": "playwright-failure",
+      "recordingId": "replace-with-playwright-failure",
+      "replayUrl": "",
+      "framework": "next",
+      "testFile": "tests/failures/playwright-failure.spec.ts",
+      "toolsCovered": [
+        "PlaywrightSteps",
+        "Screenshot",
+        "ConsoleMessages"
+      ],
+      "generatedAt": "2026-05-13T02:45:47.967Z"
+    },
+    {
+      "scenario": "profiling",
+      "recordingId": "replace-with-profiling",
+      "replayUrl": "",
+      "framework": "next",
+      "testFile": "tests/passing/profiling.spec.ts",
+      "toolsCovered": [
+        "ProfileStatements",
+        "ProfileSampling",
+        "ProfileGraph",
+        "ExecutionDelay"
+      ],
+      "generatedAt": "2026-05-13T02:45:47.967Z"
+    }
+  ]
+}

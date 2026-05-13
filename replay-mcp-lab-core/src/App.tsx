@@ -12,12 +12,15 @@ import {
   Braces,
   Bug,
   CircleX,
+  Clock,
   Database,
   Gauge,
+  Hash,
   Layers,
   MousePointerClick,
   Network,
   Play,
+  Repeat,
   RotateCcw,
   Search,
   ShieldAlert,
@@ -54,6 +57,9 @@ const scenarioIcons: Record<string, LucideIcon> = {
   "react-exception": ShieldAlert,
   "playwright-failure": Play,
   profiling: Gauge,
+  "stale-closure": Clock,
+  "async-race": Repeat,
+  "index-key-list": Hash,
 };
 
 function getBrowserScenarioId() {
@@ -182,6 +188,12 @@ function ScenarioSurface({ scenario }: { scenario: LabScenario }) {
       return <PlaywrightFailureScenario />;
     case "profiling":
       return <ProfilingScenario />;
+    case "stale-closure":
+      return <StaleClosureScenario />;
+    case "async-race":
+      return <AsyncRaceScenario />;
+    case "index-key-list":
+      return <IndexKeyListScenario />;
     default:
       return <HappyPathScenario />;
   }
@@ -674,5 +686,159 @@ function MetricStrip({ metrics }: { metrics: Array<[string, string]> }) {
         </React.Fragment>
       ))}
     </dl>
+  );
+}
+
+function StaleClosureScenario() {
+  const [count, setCount] = React.useState(0);
+  const [snapshot, setSnapshot] = React.useState<string>("pending");
+
+  function scheduleSnapshot() {
+    setSnapshot("scheduled");
+    window.setTimeout(() => {
+      setSnapshot(`captured:${count}`);
+      console.info("Replay MCP lab stale closure snapshot", { capturedCount: count });
+    }, 800);
+  }
+
+  return (
+    <div className="scenario-grid" data-testid="stale-closure-scenario">
+      <section className="panel wide">
+        <PanelTitle icon={Clock} title="Stale Closure" />
+        <div className="button-row">
+          <button
+            type="button"
+            data-testid="stale-closure-schedule"
+            onClick={scheduleSnapshot}
+          >
+            <Clock size={16} aria-hidden="true" />
+            Schedule Snapshot
+          </button>
+          <button
+            type="button"
+            data-testid="stale-closure-increment"
+            onClick={() => setCount(value => value + 1)}
+          >
+            <Zap size={16} aria-hidden="true" />
+            Increment
+          </button>
+        </div>
+        <MetricStrip
+          metrics={[
+            ["count", String(count)],
+            ["snapshot", snapshot],
+          ]}
+        />
+        <p className="data-line" data-testid="stale-closure-count">
+          count:{count}
+        </p>
+        <p className="data-line" data-testid="stale-closure-snapshot">
+          {snapshot}
+        </p>
+      </section>
+    </div>
+  );
+}
+
+function AsyncRaceScenario() {
+  const [query, setQuery] = React.useState("");
+  const [result, setResult] = React.useState("idle");
+  const [pending, setPending] = React.useState(0);
+
+  async function runFetch(value: string) {
+    setPending(value.length);
+    const latencyByLength: Record<number, number> = {
+      1: 900,
+      2: 450,
+      3: 100,
+    };
+    const latencyMs = latencyByLength[value.length] ?? 200;
+    await new Promise(resolve => window.setTimeout(resolve, latencyMs));
+    setResult(`result:${value || "empty"}`);
+    console.info("Replay MCP lab race resolved", { value, latencyMs });
+  }
+
+  function onChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const next = event.target.value;
+    setQuery(next);
+    void runFetch(next);
+  }
+
+  return (
+    <div className="scenario-grid" data-testid="async-race-scenario">
+      <section className="panel wide">
+        <PanelTitle icon={Repeat} title="Async Race Condition" />
+        <input
+          type="text"
+          data-testid="async-race-input"
+          placeholder="Type a search query"
+          value={query}
+          onChange={onChange}
+        />
+        <MetricStrip
+          metrics={[
+            ["query", query || "(empty)"],
+            ["fired", String(pending)],
+          ]}
+        />
+        <p className="data-line" data-testid="async-race-result">
+          {result}
+        </p>
+      </section>
+    </div>
+  );
+}
+
+type IndexKeyRow = { id: string; label: string };
+
+function IndexKeyListScenario() {
+  const [rows, setRows] = React.useState<IndexKeyRow[]>([
+    { id: "row-1", label: "Alpha" },
+    { id: "row-2", label: "Beta" },
+    { id: "row-3", label: "Gamma" },
+  ]);
+
+  function removeRow(id: string) {
+    setRows(current => current.filter(row => row.id !== id));
+  }
+
+  return (
+    <div className="scenario-grid" data-testid="index-key-list-scenario">
+      <section className="panel wide">
+        <PanelTitle icon={Hash} title="Index-Keyed List" />
+        <ul className="index-key-list">
+          {rows.map((row, index) => (
+            <li key={index} data-testid={`row-${row.id}`}>
+              <IndexKeyRowItem row={row} />
+              <button
+                type="button"
+                data-testid={`remove-${row.id}`}
+                onClick={() => removeRow(row.id)}
+              >
+                <CircleX size={14} aria-hidden="true" />
+                Remove
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  );
+}
+
+function IndexKeyRowItem({ row }: { row: IndexKeyRow }) {
+  const [toggled, setToggled] = React.useState(false);
+  return (
+    <span className="index-key-row">
+      <strong>{row.label}</strong>
+      <span data-testid={`toggle-${row.id}`}>{toggled ? "on" : "off"}</span>
+      <button
+        type="button"
+        data-testid={`toggle-btn-${row.id}`}
+        onClick={() => setToggled(value => !value)}
+      >
+        Toggle
+      </button>
+    </span>
   );
 }

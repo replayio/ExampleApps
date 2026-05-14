@@ -1,7 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
 
 async function waitForLabHydration(page: Page) {
-  await expect(page.getByTestId("lab-shell")).toHaveAttribute("data-hydrated", "true");
+  const shell = page.getByTestId("lab-shell");
+  await expect(shell).toBeVisible({ timeout: 15_000 });
+  await expect(shell).toHaveAttribute("data-hydrated", "true", { timeout: 15_000 });
 }
 
 export function registerHappyPathSpec() {

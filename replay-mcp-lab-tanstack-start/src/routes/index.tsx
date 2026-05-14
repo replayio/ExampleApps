@@ -6,5 +6,11 @@ export const Route = createFileRoute("/")({
 });
 
 function LabRoute() {
-  return <ReplayMcpLabApp framework="tanstack-start" initialScenarioId="happy-path" />;
+  return (
+    <ReplayMcpLabApp
+      basePath={import.meta.env.BASE_URL}
+      framework="tanstack-start"
+      initialScenarioId="happy-path"
+    />
+  );
 }

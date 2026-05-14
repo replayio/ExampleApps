@@ -1,8 +1,12 @@
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import { createLabApiResponse } from "@replayio/mcp-lab-core/api";
+import { labScenarios } from "@replayio/mcp-lab-core/metadata";
 import react from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import { defineConfig, type Plugin } from "vite";
+
+const sourceMapsEnabled = process.env.SOURCE_MAPS === "true";
+const prerenderPages = [{ path: "/" }, ...labScenarios.map(scenario => ({ path: `/${scenario.id}` }))];
 
 function labApiPlugin(): Plugin {
   return {
@@ -26,6 +30,10 @@ function labApiPlugin(): Plugin {
 }
 
 export default defineConfig({
+  base: process.env.PAGES_BASE_PATH ?? "/",
+  build: {
+    sourcemap: sourceMapsEnabled,
+  },
   server: {
     host: "127.0.0.1",
     port: 4312,
@@ -36,6 +44,13 @@ export default defineConfig({
   plugins: [
     labApiPlugin(),
     tanstackStart({
+      pages: prerenderPages,
+      prerender: {
+        enabled: true,
+      },
+      sitemap: {
+        enabled: false,
+      },
       srcDirectory: "src",
     }),
     react(),

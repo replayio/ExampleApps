@@ -7,5 +7,11 @@ export const Route = createFileRoute("/$scenario")({
 
 function LabRoute() {
   const { scenario } = Route.useParams();
-  return <ReplayMcpLabApp framework="tanstack-start" initialScenarioId={scenario} />;
+  return (
+    <ReplayMcpLabApp
+      basePath={import.meta.env.BASE_URL}
+      framework="tanstack-start"
+      initialScenarioId={scenario}
+    />
+  );
 }

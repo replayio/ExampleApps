@@ -2,6 +2,8 @@ import { createLabApiResponse } from "@replayio/mcp-lab-core/api";
 import react from "@vitejs/plugin-react";
 import { defineConfig, type Plugin } from "vite";
 
+const sourceMapsEnabled = process.env.SOURCE_MAPS === "true";
+
 function labApiPlugin(): Plugin {
   return {
     name: "replay-mcp-lab-api",
@@ -24,6 +26,10 @@ function labApiPlugin(): Plugin {
 }
 
 export default defineConfig({
+  base: process.env.PAGES_BASE_PATH ?? "/",
+  build: {
+    sourcemap: sourceMapsEnabled,
+  },
   plugins: [react(), labApiPlugin()],
   server: {
     host: "127.0.0.1",

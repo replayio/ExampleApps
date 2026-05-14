@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import * as React from "react";
 import { Provider, useDispatch, useSelector } from "react-redux";
+import { getLabApiPayload, type LabApiPayload } from "./api";
 import { labScenarios, getScenario, type LabScenario } from "./metadata";
 import { calculateDependencyScore, mcpLogpointAnchor, runProfileWorkload } from "./scenarioMath";
 import {
@@ -41,6 +42,7 @@ import {
 type FrameworkName = "vite" | "next" | "tanstack-start";
 
 type ReplayMcpLabAppProps = {
+  basePath?: string;
   framework: FrameworkName;
   initialScenarioId?: string;
 };
@@ -56,29 +58,74 @@ const scenarioIcons: Record<string, LucideIcon> = {
   profiling: Gauge,
 };
 
-function getBrowserScenarioId() {
+function normalizeBasePath(basePath: string | undefined) {
+  if (!basePath || basePath === "/") {
+    return "";
+  }
+  return `/${basePath.split("/").filter(Boolean).join("/")}`;
+}
+
+function getBrowserScenarioId(basePath?: string) {
   if (typeof window === "undefined") {
     return "happy-path";
   }
 
-  return window.location.pathname.split("/").filter(Boolean)[0] || "happy-path";
+  const normalizedBasePath = normalizeBasePath(basePath);
+  const pathname = normalizedBasePath
+    ? window.location.pathname.replace(new RegExp(`^${normalizedBasePath}`), "")
+    : window.location.pathname;
+  return pathname.split("/").filter(Boolean)[0] || "happy-path";
 }
 
-export function ReplayMcpLabApp({ framework, initialScenarioId }: ReplayMcpLabAppProps) {
+async function requestLabApi(scenario: string, mode: string): Promise<LabApiPayload> {
+  const requestPath = `/api/lab/${scenario}?mode=${encodeURIComponent(mode)}`;
+
+  try {
+    const response = await fetch(requestPath, {
+      headers: { "X-Replay-Mcp-Lab": scenario },
+    });
+    if (!response.ok && response.status !== 503) {
+      throw new Error(`Lab API returned ${response.status}`);
+    }
+    const payload = (await response.json()) as LabApiPayload;
+    if (isStaticPayloadMismatch(mode, payload)) {
+      throw new Error(`Lab API returned a static payload for ${mode}`);
+    }
+    return payload;
+  } catch (error) {
+    console.warn("Replay MCP lab static API fallback", { scenario, mode, error });
+    return getLabApiPayload(scenario, `http://localhost${requestPath}`);
+  }
+}
+
+function isStaticPayloadMismatch(mode: string, payload: LabApiPayload) {
+  const expectedFailure = mode.includes("fail") || mode.includes("query-fail");
+  if (expectedFailure && payload.status !== "failed") {
+    return true;
+  }
+  return mode.includes("slow") && payload.metrics.latencyMs !== 450;
+}
+
+export function ReplayMcpLabApp({ basePath, framework, initialScenarioId }: ReplayMcpLabAppProps) {
   const [queryClient] = React.useState(() => new QueryClient());
 
   return (
     <Provider store={labStore}>
       <QueryClientProvider client={queryClient}>
-        <LabExperience framework={framework} initialScenarioId={initialScenarioId} />
+        <LabExperience
+          basePath={basePath}
+          framework={framework}
+          initialScenarioId={initialScenarioId}
+        />
       </QueryClientProvider>
     </Provider>
   );
 }
 
-function LabExperience({ framework, initialScenarioId }: ReplayMcpLabAppProps) {
+function LabExperience({ basePath, framework, initialScenarioId }: ReplayMcpLabAppProps) {
+  const normalizedBasePath = normalizeBasePath(basePath);
   const [scenarioId, setScenarioId] = React.useState(
-    () => initialScenarioId ?? getBrowserScenarioId()
+    () => initialScenarioId ?? getBrowserScenarioId(normalizedBasePath)
   );
   const [hydrated, setHydrated] = React.useState(false);
   const scenario = getScenario(scenarioId);
@@ -88,15 +135,15 @@ function LabExperience({ framework, initialScenarioId }: ReplayMcpLabAppProps) {
   }, []);
 
   React.useEffect(() => {
-    const onPopState = () => setScenarioId(getBrowserScenarioId());
+    const onPopState = () => setScenarioId(getBrowserScenarioId(normalizedBasePath));
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
-  }, []);
+  }, [normalizedBasePath]);
 
   function navigate(nextScenarioId: string) {
     setScenarioId(nextScenarioId);
     if (typeof window !== "undefined") {
-      window.history.pushState(null, "", `/${nextScenarioId}`);
+      window.history.pushState(null, "", `${normalizedBasePath}/${nextScenarioId}`);
     }
   }
 
@@ -194,10 +241,7 @@ function HappyPathScenario() {
 
   async function runNetwork(mode: string) {
     setNetworkState(`fetching:${mode}`);
-    const response = await fetch(`/api/lab/happy-path?mode=${mode}`, {
-      headers: { "X-Replay-Mcp-Lab": "happy-path" },
-    });
-    const payload = await response.json();
+    const payload = await requestLabApi("happy-path", mode);
     console.info("Replay MCP lab network response", payload);
     setNetworkState(`${payload.status}:${payload.metrics.latencyMs}`);
   }
@@ -301,13 +345,11 @@ function StateReactScenario() {
     enabled: queryEnabled && typeof window !== "undefined",
     queryKey: ["replay-mcp-lab-query", queryMode, renderTicks],
     queryFn: async () => {
-      const response = await fetch(`/api/lab/state-react?mode=${queryMode}`, {
-        headers: { "X-Replay-Mcp-Lab": "tanstack-query" },
-      });
-      if (!response.ok) {
-        throw new Error(`Lab query failed with ${response.status}`);
+      const payload = await requestLabApi("state-react", queryMode);
+      if (payload.status === "failed") {
+        throw new Error("Lab query failed with deterministic payload");
       }
-      return response.json() as Promise<{ summary: string; metrics: { total: number } }>;
+      return payload;
     },
     retry: 1,
   });

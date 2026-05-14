@@ -5,7 +5,7 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "dev": "vite dev --host 127.0.0.1 --port 4312",
+    "dev": "rm -rf .output node_modules/.nitro && vite dev --host 127.0.0.1 --port 4312",
     "build": "vite build && tsc --noEmit",
     "preview": "vite preview --host 127.0.0.1 --port 4412",
     "start": "node .output/server/index.mjs",

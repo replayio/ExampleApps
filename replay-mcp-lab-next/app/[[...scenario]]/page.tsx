@@ -1,4 +1,12 @@
 import { LabClient } from "../lab-client";
+import { labScenarios } from "@replayio/mcp-lab-core/metadata";
+
+export function generateStaticParams() {
+  return [
+    { scenario: [] },
+    ...labScenarios.map(scenario => ({ scenario: [scenario.id] })),
+  ];
+}
 
 export default async function Page({
   params,

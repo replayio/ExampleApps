@@ -11,6 +11,6 @@ if (!root) {
 
 createRoot(root).render(
   <StrictMode>
-    <ReplayMcpLabApp framework="vite" />
+    <ReplayMcpLabApp basePath={import.meta.env.BASE_URL} framework="vite" />
   </StrictMode>
 );

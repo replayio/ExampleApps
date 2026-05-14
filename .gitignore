@@ -1,5 +1,7 @@
 node_modules/
 dist/
+out/
+pages-dist/
 .next/
 .output/
 test-results/

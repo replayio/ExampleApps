@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "build": "npm run build -w @replayio/mcp-lab-vite && npm run build -w @replayio/mcp-lab-next && npm run build -w @replayio/mcp-lab-tanstack-start",
+    "build:pages": "node scripts/build-pages.mjs",
     "ci:record": "npm run ci:record:vite && npm run ci:record:next && npm run ci:record:tanstack-start",
     "ci:record:next": "npm run record:all -w @replayio/mcp-lab-next",
     "ci:record:tanstack-start": "npm run record:all -w @replayio/mcp-lab-tanstack-start",

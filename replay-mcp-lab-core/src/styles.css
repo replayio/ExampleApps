@@ -173,8 +173,10 @@ button:focus-visible {
 
 .metric-strip {
   display: grid;
-  gap: 0.5rem;
+  gap: 0.5rem 1.5rem;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: auto auto;
+  grid-auto-flow: column;
   margin: 1rem 0 0;
 }
 

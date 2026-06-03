@@ -404,6 +404,8 @@ function StateReactScenario() {
               dispatch(labActions.resetLabState());
               zustandState.reset();
               setQueryEnabled(false);
+              setRenderTicks(0);
+              queryClient.clear();
             }}
           >
             <RotateCcw size={16} aria-hidden="true" />

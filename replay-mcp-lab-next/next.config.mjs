@@ -7,6 +7,7 @@ const staticExport = process.env.NEXT_OUTPUT === "export";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  compress: true,
   assetPrefix: basePath || undefined,
   basePath: basePath || undefined,
   images: {

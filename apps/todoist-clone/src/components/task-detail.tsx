@@ -20,7 +20,7 @@ function DetailBody({ task }: { task: Task }) {
   const meta = PRIORITY_META[task.priority]
 
   // Description preview shown in the header summary.
-  const preview = (task.description as string).slice(0, 240)
+  const preview = (task.description ?? "").slice(0, 240)
 
   return (
     <div className="flex flex-col gap-4 p-5">

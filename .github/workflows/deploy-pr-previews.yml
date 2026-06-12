@@ -49,6 +49,17 @@ jobs:
             --head HEAD \
             --pr "${{ github.event.pull_request.number }}"
 
+      - name: Run Replay QA on deployed previews
+        env:
+          REPLAY_QA_API_TOKEN: ${{ secrets.REPLAY_QA_API_TOKEN }}
+          REPLAY_QA_MAX_WAIT_MS: 1200000
+          REPLAY_QA_POLL_INTERVAL_MS: 15000
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          node tools/replay-qa/run-preview-qa.mjs \
+            --deployments netlify-deployments.json \
+            --pr "${{ github.event.pull_request.number }}"
+
       - name: Comment preview links
         if: always()
         uses: actions/github-script@v8
@@ -56,11 +67,18 @@ jobs:
           script: |
             const fs = require("fs")
             const marker = "<!-- netlify-preview-links -->"
-            const path = "netlify-deployments.md"
-            const summary = fs.existsSync(path)
-              ? fs.readFileSync(path, "utf8")
-              : "Netlify preview deployment did not produce a summary."
-            const body = `${marker}\n${summary}`
+            const sections = []
+            if (fs.existsSync("netlify-deployments.md")) {
+              sections.push(fs.readFileSync("netlify-deployments.md", "utf8"))
+            } else {
+              sections.push("Netlify preview deployment did not produce a summary.")
+            }
+            if (fs.existsSync("replay-qa-results.md")) {
+              sections.push(fs.readFileSync("replay-qa-results.md", "utf8"))
+            } else {
+              sections.push("Replay QA did not produce a summary.")
+            }
+            const body = `${marker}\n${sections.join("\n")}`
             const { owner, repo } = context.repo
             const issue_number = context.payload.pull_request.number
             const comments = await github.rest.issues.listComments({

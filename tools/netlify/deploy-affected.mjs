@@ -97,9 +97,17 @@ function touchesGlobalBuildSurface(files) {
     file === "package.json" ||
     file === "package-lock.json" ||
     file === "nx.json" ||
-    file.startsWith("tools/") ||
-    file.startsWith(".github/workflows/")
+    file === "tools/netlify/sites.json"
   )
+}
+
+function directlyChangedProjects(files) {
+  const projectSet = new Set()
+  for (const file of files) {
+    const match = /^apps\/([^/]+)\//.exec(file)
+    if (match && sites[match[1]]) projectSet.add(match[1])
+  }
+  return orderedProjects.filter((project) => projectSet.has(project))
 }
 
 function affectedProjects() {
@@ -107,6 +115,10 @@ function affectedProjects() {
 
   const files = changedFiles()
   if (!files || touchesGlobalBuildSurface(files)) return orderedProjects
+
+  const directProjects = directlyChangedProjects(files)
+  if (directProjects.length > 0) return directProjects
+  if (!files.some((file) => file.startsWith("apps/"))) return []
 
   const nxArgs = [
     "nx",
@@ -242,7 +254,18 @@ for (const project of projects) {
 }
 
 const markdown = markdownFor(results, projects)
+const json = {
+  mode,
+  base,
+  head,
+  prNumber,
+  dryRun,
+  createdAt: new Date().toISOString(),
+  projects,
+  results,
+}
 writeFileSync(path.join(workspaceRoot, "netlify-deployments.md"), markdown)
+writeFileSync(path.join(workspaceRoot, "netlify-deployments.json"), `${JSON.stringify(json, null, 2)}\n`)
 console.log(markdown)
 
 if (process.env.GITHUB_STEP_SUMMARY) {
@@ -251,4 +274,5 @@ if (process.env.GITHUB_STEP_SUMMARY) {
 
 if (process.env.GITHUB_OUTPUT) {
   appendFileSync(process.env.GITHUB_OUTPUT, "markdown_path=netlify-deployments.md\n")
+  appendFileSync(process.env.GITHUB_OUTPUT, "json_path=netlify-deployments.json\n")
 }

@@ -38,10 +38,14 @@ node tools/netlify/deploy-affected.mjs --mode preview --base origin/main --head 
 ```
 
 The GitHub Actions workflows require a repository secret named
-`NETLIFY_AUTH_TOKEN`.
+`NETLIFY_AUTH_TOKEN`. PR preview QA also requires a Replay QA bearer token in
+`REPLAY_QA_API_TOKEN`. Generate it from the Replay QA settings page; valid
+tokens start with `lqa_`.
 
 - `Deploy Main` runs on pushes to `main`, builds affected app projects, uploads
   draft deploys, and publishes them to the configured production Netlify sites.
 - `Deploy PR Previews` runs on same-repository pull requests, deploys affected
   apps to stable `deploy-preview-<pr>` Netlify aliases, and updates a PR comment
-  with the preview links.
+  with the preview links. After Netlify deploys, the workflow creates Replay QA
+  projects for the deployed preview URLs, polls until QA completes or times out,
+  lists open bugs, and appends the QA summary to the same PR comment.

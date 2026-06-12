@@ -1,39 +1,47 @@
-# Replay MCP Lab Examples
+# ExampleApps
 
-This workspace contains one shared Replay MCP diagnostic lab and three thin framework shells:
+Nx monorepo for the Replay example apps.
 
-- `replay-mcp-lab-core`: shared scenarios, state stores, test runners, API fixtures, and manifest scripts.
-- `replay-mcp-lab-vite`: Vite React shell.
-- `replay-mcp-lab-next`: Next.js App Router shell.
-- `replay-mcp-lab-tanstack-start`: TanStack Start shell.
+## Apps
 
-Install from this directory:
+| Project | Production URL |
+|---|---|
+| `acctual` | <https://blamy-broken-linear-acctual.netlify.app> |
+| `blamy-notes` | <https://blamy-notes.netlify.app> |
+| `digg-clone` | <https://blamy-broken-linear-digg-clone.netlify.app> |
+| `github-clone` | <https://blamy-broken-linear-github-clone.netlify.app> |
+| `linear` | <https://blamy-broken-linear-linear.netlify.app> |
+| `pampam-clone` | <https://blamy-broken-linear-pampam-clone.netlify.app> |
+| `substack-clone` | <https://blamy-broken-linear-substack-clone.netlify.app> |
+| `todoist-clone` | <https://todoist-clone-loopqa-4271.netlify.app> |
+
+## Local commands
 
 ```bash
 npm install
+npm run build:all
+npx nx run todoist-clone:dev
 ```
 
-Run one shell:
+Each app keeps its own Vite, TypeScript, and Netlify Functions config under
+`apps/<project>`.
+
+## Deployments
+
+Netlify site IDs live in `tools/netlify/sites.json`.
+
+The deploy helper uses Nx affected-project detection:
 
 ```bash
-npm run dev -w @replayio/mcp-lab-vite
-npm run dev -w @replayio/mcp-lab-next
-npm run dev -w @replayio/mcp-lab-tanstack-start
+node tools/netlify/deploy-affected.mjs --mode production --base origin/main --head HEAD
+node tools/netlify/deploy-affected.mjs --mode preview --base origin/main --head HEAD --pr 123
 ```
 
-Recordings are generated per shell with:
+The GitHub Actions workflows require a repository secret named
+`NETLIFY_AUTH_TOKEN`.
 
-```bash
-npm run record:all -w @replayio/mcp-lab-vite
-npm run record:all -w @replayio/mcp-lab-next
-npm run record:all -w @replayio/mcp-lab-tanstack-start
-```
-
-The CI workflow at `.github/workflows/replay-mcp-lab.yml` runs the normal
-Chromium checks first, then runs each shell's Replay Chromium recording suite in
-a matrix job. Configure either `SANDBOX_CI_REPLAY_API_KEY` or `REPLAY_API_KEY`
-as a GitHub Actions secret. The recording jobs install the Replay browser with
-`npx replayio install`, set `REPLAY_UPLOAD=1`, and upload through
-`replayReporter({ apiKey: process.env.REPLAY_API_KEY, upload: { statusThreshold: "all" } })`.
-
-Each shell owns a `recordings.manifest.json` file. The manifest starts with placeholder recording IDs and can be refreshed after upload with each shell's `upload:recordings` script.
+- `Deploy Main` runs on pushes to `main`, builds affected app projects, uploads
+  draft deploys, and publishes them to the configured production Netlify sites.
+- `Deploy PR Previews` runs on same-repository pull requests, deploys affected
+  apps to stable `deploy-preview-<pr>` Netlify aliases, and updates a PR comment
+  with the preview links.

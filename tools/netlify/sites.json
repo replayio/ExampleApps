@@ -1,0 +1,59 @@
+{
+  "sites": {
+    "acctual": {
+      "siteId": "c9deb137-287d-40d6-a240-39147d27d726",
+      "name": "blamy-broken-linear-acctual",
+      "url": "https://blamy-broken-linear-acctual.netlify.app",
+      "publish": "apps/acctual/dist",
+      "functions": "apps/acctual/netlify/functions"
+    },
+    "blamy-notes": {
+      "siteId": "cacd57f2-12f6-46a9-85bc-9c00ea426097",
+      "name": "blamy-notes",
+      "url": "https://blamy-notes.netlify.app",
+      "publish": "apps/blamy-notes/dist",
+      "functions": "apps/blamy-notes/netlify/functions"
+    },
+    "digg-clone": {
+      "siteId": "2cdd7390-7967-4822-a1b2-8812f127621a",
+      "name": "blamy-broken-linear-digg-clone",
+      "url": "https://blamy-broken-linear-digg-clone.netlify.app",
+      "publish": "apps/digg-clone/dist",
+      "functions": "apps/digg-clone/netlify/functions"
+    },
+    "github-clone": {
+      "siteId": "28b098d9-787d-4570-9f69-b2802df2c122",
+      "name": "blamy-broken-linear-github-clone",
+      "url": "https://blamy-broken-linear-github-clone.netlify.app",
+      "publish": "apps/github-clone/dist",
+      "functions": "apps/github-clone/netlify/functions"
+    },
+    "linear": {
+      "siteId": "e09b93a3-43cb-466b-bfa9-b9ba607f4e13",
+      "name": "blamy-broken-linear-linear",
+      "url": "https://blamy-broken-linear-linear.netlify.app",
+      "publish": "apps/linear/dist",
+      "functions": "apps/linear/netlify/functions"
+    },
+    "pampam-clone": {
+      "siteId": "b02a9a89-6ac7-45d5-adeb-bedf2832ee07",
+      "name": "blamy-broken-linear-pampam-clone",
+      "url": "https://blamy-broken-linear-pampam-clone.netlify.app",
+      "publish": "apps/pampam-clone/dist"
+    },
+    "substack-clone": {
+      "siteId": "61604419-ca52-441a-adde-7de49015d145",
+      "name": "blamy-broken-linear-substack-clone",
+      "url": "https://blamy-broken-linear-substack-clone.netlify.app",
+      "publish": "apps/substack-clone/dist",
+      "functions": "apps/substack-clone/netlify/functions"
+    },
+    "todoist-clone": {
+      "siteId": "ff525119-8815-41d5-acca-7f299bf1b8f1",
+      "name": "todoist-clone-loopqa-4271",
+      "url": "https://todoist-clone-loopqa-4271.netlify.app",
+      "publish": "apps/todoist-clone/dist",
+      "functions": "apps/todoist-clone/netlify/functions"
+    }
+  }
+}

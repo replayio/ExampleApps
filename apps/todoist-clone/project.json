@@ -1,0 +1,36 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "todoist-clone",
+  "projectType": "application",
+  "root": "apps/todoist-clone",
+  "sourceRoot": "apps/todoist-clone/src",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "outputs": [
+        "{projectRoot}/dist"
+      ],
+      "options": {
+        "command": "npm run build --workspace=apps/todoist-clone"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npm run lint --workspace=apps/todoist-clone"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npm run typecheck --workspace=apps/todoist-clone"
+      }
+    },
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npm run dev --workspace=apps/todoist-clone"
+      }
+    }
+  }
+}

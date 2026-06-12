@@ -1,0 +1,31 @@
+{
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "defaultBase": "main",
+  "namedInputs": {
+    "sharedGlobals": [
+      "{workspaceRoot}/.github/workflows/**",
+      "{workspaceRoot}/package.json",
+      "{workspaceRoot}/package-lock.json",
+      "{workspaceRoot}/nx.json",
+      "{workspaceRoot}/tools/**"
+    ],
+    "default": [
+      "{projectRoot}/**/*",
+      "sharedGlobals"
+    ],
+    "production": [
+      "default",
+      "!{projectRoot}/dist/**",
+      "!{projectRoot}/node_modules/**"
+    ]
+  },
+  "targetDefaults": {
+    "build": {
+      "cache": true,
+      "inputs": [
+        "production",
+        "^production"
+      ]
+    }
+  }
+}

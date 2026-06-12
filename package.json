@@ -1,23 +1,26 @@
 {
-  "name": "replay-mcp-lab-examples",
+  "name": "example-apps",
+  "version": "0.0.0",
   "private": true,
+  "type": "module",
   "workspaces": [
-    "replay-mcp-lab-core",
-    "replay-mcp-lab-vite",
-    "replay-mcp-lab-next",
-    "replay-mcp-lab-tanstack-start"
+    "apps/*"
   ],
   "scripts": {
-    "build": "npm run build -w @replayio/mcp-lab-vite && npm run build -w @replayio/mcp-lab-next && npm run build -w @replayio/mcp-lab-tanstack-start",
-    "build:pages": "node scripts/build-pages.mjs",
-    "ci:record": "npm run ci:record:vite && npm run ci:record:next && npm run ci:record:tanstack-start",
-    "ci:record:next": "npm run record:all -w @replayio/mcp-lab-next",
-    "ci:record:tanstack-start": "npm run record:all -w @replayio/mcp-lab-tanstack-start",
-    "ci:record:vite": "npm run record:all -w @replayio/mcp-lab-vite",
-    "install:replay": "replayio install",
-    "record:all": "npm run record:all -w @replayio/mcp-lab-vite && npm run record:all -w @replayio/mcp-lab-next && npm run record:all -w @replayio/mcp-lab-tanstack-start",
-    "typecheck": "npm run typecheck -w @replayio/mcp-lab-core && npm run typecheck -w @replayio/mcp-lab-vite && npm run typecheck -w @replayio/mcp-lab-next && npm run typecheck -w @replayio/mcp-lab-tanstack-start",
-    "test": "npm run test -w @replayio/mcp-lab-vite && npm run test -w @replayio/mcp-lab-next && npm run test -w @replayio/mcp-lab-tanstack-start",
-    "validate:manifests": "npm run validate:manifest -w @replayio/mcp-lab-vite && npm run validate:manifest -w @replayio/mcp-lab-next && npm run validate:manifest -w @replayio/mcp-lab-tanstack-start"
+    "build": "nx affected -t build",
+    "build:all": "nx run-many -t build --all",
+    "deploy:affected": "node tools/netlify/deploy-affected.mjs --mode production",
+    "deploy:previews": "node tools/netlify/deploy-affected.mjs --mode preview",
+    "nx": "nx"
+  },
+  "overrides": {
+    "ajv-errors": {
+      "ajv": "^8"
+    }
+  },
+  "devDependencies": {
+    "@opentelemetry/api": "^1.8.0",
+    "netlify-cli": "^26.1.0",
+    "nx": "^22.0.0"
   }
 }

@@ -5,11 +5,30 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import "./index.css"
 import "highlight.js/styles/github-dark.css"
 import App from "./App.tsx"
+import { ApiError } from "@/lib/api"
 import { ThemeProvider } from "@/components/theme-provider.tsx"
 import { AuthProvider } from "@/components/auth-provider.tsx"
 import { Toaster } from "@/components/ui/sonner"
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // A 4xx response (e.g. 401 "missing bearer token") is a permanent
+      // failure that retrying cannot fix — fail fast instead of spinning
+      // through exponential backoff. Only retry genuine transient errors.
+      retry: (failureCount, error) => {
+        if (
+          error instanceof ApiError &&
+          error.status >= 400 &&
+          error.status < 500
+        ) {
+          return false
+        }
+        return failureCount < 3
+      },
+    },
+  },
+})
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 import { formatDistanceToNow } from "date-fns"
 import { GitFork, Loader2, Star } from "lucide-react"
 
-import { api } from "@/lib/api"
+import { ApiError, api } from "@/lib/api"
 import { GithubIcon } from "@/components/github-icon"
 import { formatBytes, languageColor } from "@/lib/lang"
 import { repoUrl } from "@/lib/router"
@@ -32,11 +32,41 @@ export function Dashboard({ onMirror }: { onMirror: () => void }) {
         </div>
       )}
 
-      {mirrored.isError && (
-        <div className="mt-6 rounded-md border py-16 text-center text-sm text-destructive">
-          {String(mirrored.error.message)}
-        </div>
-      )}
+      {mirrored.isError && (() => {
+        const error = mirrored.error
+        const isAuth = error instanceof ApiError && error.status === 401
+        return (
+          <div className="mt-6 flex flex-col items-center gap-3 rounded-md border py-16 text-center">
+            <GithubIcon className="size-8 text-muted-foreground" />
+            <div>
+              <p className="text-sm font-medium">
+                {isAuth
+                  ? "Couldn't load repositories — please sign in"
+                  : "Couldn't load repositories"}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {isAuth
+                  ? "Your session has expired or you're not signed in. Sign in with GitHub to view your mirrored repositories."
+                  : "Something went wrong while loading your repositories. Please try again."}
+              </p>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => mirrored.refetch()}
+              disabled={mirrored.isFetching}
+            >
+              {mirrored.isFetching ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" /> Retrying…
+                </>
+              ) : (
+                "Retry"
+              )}
+            </Button>
+          </div>
+        )
+      })()}
 
       {mirrored.data && repos.length === 0 && (
         <div className="mt-6 flex flex-col items-center gap-3 rounded-md border border-dashed py-16">

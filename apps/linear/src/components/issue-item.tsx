@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils"
+import { cn, getContrastTextColor } from "@/lib/utils"
 import {
   PRIORITY_META,
   STATUS_META,
@@ -91,8 +91,11 @@ export function IssueItem({ issue }: { issue: Issue }) {
       {assignee ? (
         <Avatar className="size-5 shrink-0">
           <AvatarFallback
-            className="text-[9px] text-white"
-            style={{ backgroundColor: assignee.color }}
+            className="text-[9px]"
+            style={{
+              backgroundColor: assignee.color,
+              color: getContrastTextColor(assignee.color),
+            }}
           >
             {assignee.initials}
           </AvatarFallback>

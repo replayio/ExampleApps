@@ -41,8 +41,10 @@ interface HnHit {
   author?: string
 }
 
+type LiveSource = "gdelt" | "hn"
+
 interface CachedStories {
-  source: "gdelt" | "hn"
+  source: LiveSource
   expiresAt: number
   stories: Story[]
 }
@@ -51,6 +53,12 @@ const GDELT_URL = "https://api.gdeltproject.org/api/v2/doc/doc"
 const HN_URL = "https://hn.algolia.com/api/v1"
 const CACHE_TTL_MS = 1000 * 60 * 5
 const GDELT_TIMEOUT_MS = 2000
+// Maximum time the /feed request will block waiting for the live external
+// aggregation. If the (cold) live fetch exceeds this, we return the local
+// stories immediately and let the live fetch finish in the background to warm
+// the per-source caches for subsequent requests, so the feed never blocks the
+// page for multiple seconds on a cache miss.
+const LIVE_BUDGET_MS = 600
 const liveCache = new Map<string, CachedStories>()
 const storyIndex = new Map<string, Story>()
 
@@ -389,23 +397,60 @@ function sortStories(stories: Story[], feed: FeedId) {
   )
 }
 
+function mergeLiveResponse(feed: FeedId, local: Story[], live: { source: LiveSource; stories: Story[] }) {
+  const stories = sortStories(dedupeStories([...local, ...live.stories]), feed)
+  return {
+    feed,
+    source: (live.stories.length > 0 && local.length > 0 ? "mixed" : live.source) as
+      | "mixed"
+      | LiveSource,
+    stories,
+  }
+}
+
+function localFeedResponse(feed: FeedId, local: Story[]) {
+  return {
+    feed,
+    source: "local" as const,
+    stories: sortStories(local.length > 0 ? local : localStories, feed),
+  }
+}
+
 async function feedResponse(feed: FeedId, q = "") {
   const local = localStoriesFor(feed, q)
-  try {
-    const live = await fetchLiveStories(feed, q)
-    const stories = sortStories(dedupeStories([...local, ...live.stories]), feed)
+
+  // Race the live aggregation against a fixed budget. On a warm cache the live
+  // fetch resolves almost instantly and we return the merged "mixed" feed. On a
+  // cold cache (where the external sources can take ~2s+) the budget wins, we
+  // return local stories immediately, and the still-pending live fetch warms the
+  // per-source caches for the next request instead of blocking this one.
+  const livePromise = fetchLiveStories(feed, q).catch((error) => {
+    // Swallow here so an unhandled rejection isn't logged when the budget wins;
+    // the awaiting branch below re-checks the settled result.
+    return { __error: error } as const
+  })
+
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const budget = new Promise<"timeout">((resolve) => {
+    timer = setTimeout(() => resolve("timeout"), LIVE_BUDGET_MS)
+  })
+
+  const winner = await Promise.race([livePromise, budget])
+  if (timer) clearTimeout(timer)
+
+  if (winner === "timeout") {
+    return localFeedResponse(feed, local)
+  }
+
+  if (winner && typeof winner === "object" && "__error" in winner) {
     return {
       feed,
-      source: live.stories.length > 0 && local.length > 0 ? "mixed" : live.source,
-      stories,
-    }
-  } catch {
-    return {
-      feed,
-      source: feed === "saved" ? "local" : "fallback",
+      source: feed === "saved" ? ("local" as const) : ("fallback" as const),
       stories: sortStories(local.length > 0 ? local : localStories, feed),
     }
   }
+
+  return mergeLiveResponse(feed, local, winner)
 }
 
 function findStory(id: string) {

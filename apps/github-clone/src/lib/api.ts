@@ -60,6 +60,16 @@ export interface BlobResult {
 
 const BASE = "/api"
 
+/** Error thrown by `http` that carries the HTTP status code of the response. */
+export class ApiError extends Error {
+  status: number
+  constructor(message: string, status: number) {
+    super(message)
+    this.name = "ApiError"
+    this.status = status
+  }
+}
+
 // Auth rides along automatically via the HttpOnly session cookie.
 async function http<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
@@ -74,7 +84,7 @@ async function http<T>(path: string, init?: RequestInit): Promise<T> {
     } catch {
       /* not json */
     }
-    throw new Error(detail)
+    throw new ApiError(detail, res.status)
   }
   return res.json() as Promise<T>
 }

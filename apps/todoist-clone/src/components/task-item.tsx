@@ -13,6 +13,15 @@ const LABEL_COLORS: Record<string, string> = {
   waiting: "#eab308",
 }
 
+// Darker text variants so chip text meets WCAG AA (4.5:1) against the
+// ~13% tint of the same hue used for the chip background.
+const LABEL_TEXT_COLORS: Record<string, string> = {
+  urgent: "#c81e1e",
+  work: "#1d4ed8",
+  home: "#15803d",
+  waiting: "#854d0e",
+}
+
 export function TaskItem({ task }: { task: Task }) {
   const selectTask = useUIStore((s) => s.selectTask)
   const update = useUpdateTask()
@@ -68,7 +77,7 @@ export function TaskItem({ task }: { task: Task }) {
               className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px]"
               style={{
                 backgroundColor: `${LABEL_COLORS[label] ?? "#888"}22`,
-                color: LABEL_COLORS[label] ?? "#888",
+                color: LABEL_TEXT_COLORS[label] ?? "#525252",
               }}
             >
               {label}

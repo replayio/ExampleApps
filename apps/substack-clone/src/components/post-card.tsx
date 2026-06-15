@@ -50,7 +50,7 @@ export function PostCard({ post }: { post: FeedPost }) {
             {!post.subscribed && (
               <button
                 onClick={() => subscribe.mutate(post.publicationId)}
-                className="text-[16px] font-bold text-[#ff6719]"
+                className="text-[16px] font-bold text-[#c2410c]"
               >
                 Subscribe
               </button>
@@ -72,7 +72,9 @@ export function PostCard({ post }: { post: FeedPost }) {
             <img
               src={post.imageUrl}
               alt=""
-              className="mt-6 max-h-[620px] w-full max-w-[470px] rounded-lg object-cover"
+              width={470}
+              height={313}
+              className="mt-6 aspect-[470/313] max-h-[620px] w-full max-w-[470px] rounded-lg object-cover"
             />
           )}
         </button>

@@ -67,7 +67,7 @@ export function StoryCard({ story }: { story: Story }) {
           </button>
         </div>
 
-        <div className="flex w-10 shrink-0 justify-end pt-1 text-[16px] text-[#777887]">
+        <div className="flex w-10 shrink-0 justify-end pt-1 text-[16px] text-[#5d5e69]">
           {timeAgo(story.publishedAt)}
         </div>
 

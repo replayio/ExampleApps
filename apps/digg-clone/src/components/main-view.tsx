@@ -2,6 +2,7 @@ import { useMemo } from "react"
 import { CirclePlus, Search } from "lucide-react"
 import { useCommunities, useStories } from "@/queries/stories"
 import { useUIStore } from "@/store/ui-store"
+import { useSavedStore } from "@/store/saved-store"
 import type { FeedId, Story } from "@/lib/types"
 import { SearchView } from "@/components/search-view"
 import { StoryList } from "@/components/story-list"
@@ -43,11 +44,18 @@ export function MainView() {
   const toggleSearch = useUIStore((state) => state.toggleSearch)
   const { data: communities = [] } = useCommunities()
   const { data, isLoading } = useStories(feed === "search" ? "all" : feed)
+  const savedStories = useSavedStore((state) => state.stories)
 
-  const stories = useMemo(
-    () => sortStories(data?.stories ?? [], feedSort),
-    [data?.stories, feedSort]
-  )
+  const stories = useMemo(() => {
+    // The Saved feed is derived client-side: the feed API runs on stateless
+    // serverless instances and cannot reliably return saved stories, so we read
+    // them from the locally-persisted saved store instead.
+    const source =
+      feed === "saved"
+        ? Object.values(savedStories)
+        : data?.stories ?? []
+    return sortStories(source, feedSort)
+  }, [feed, savedStories, data?.stories, feedSort])
 
   const chooseFeed = (value: string) => {
     setFeed(value as FeedId)
@@ -143,7 +151,10 @@ export function MainView() {
 
         <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-16 sm:px-10 lg:px-12">
           <div className="mx-auto max-w-[980px]">
-            <StoryList stories={stories} loading={isLoading} />
+            <StoryList
+              stories={stories}
+              loading={feed === "saved" ? false : isLoading}
+            />
           </div>
         </div>
       </section>

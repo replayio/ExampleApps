@@ -16,6 +16,7 @@ import {
   useVoteStory,
 } from "@/queries/stories"
 import { useUIStore } from "@/store/ui-store"
+import { useSavedStore } from "@/store/saved-store"
 import {
   Dialog,
   DialogContent,
@@ -30,6 +31,7 @@ function nextVote(current: VoteState, vote: VoteState) {
 function DetailBody({ story }: { story: Story }) {
   const vote = useVoteStory()
   const save = useToggleSaveStory()
+  const isSaved = useSavedStore((state) => Boolean(state.stories[story.id]))
 
   const copyLink = async () => {
     await navigator.clipboard.writeText(story.url)
@@ -84,13 +86,13 @@ function DetailBody({ story }: { story: Story }) {
           <Button
             variant="secondary"
             className="rounded-full"
-            onClick={() => save.mutate(story)}
+            onClick={() => save.mutate({ ...story, saved: isSaved })}
           >
             <Bookmark
               className="size-4"
-              fill={story.saved ? "currentColor" : "none"}
+              fill={isSaved ? "currentColor" : "none"}
             />
-            {story.saved ? "Saved" : "Save"}
+            {isSaved ? "Saved" : "Save"}
           </Button>
         </div>
       </div>

@@ -3,6 +3,7 @@ import { formatDistanceToNow } from "date-fns"
 import { GitFork, Loader2, Star } from "lucide-react"
 
 import { ApiError, api } from "@/lib/api"
+import { ExploreRepos } from "@/components/explore-repos"
 import { GithubIcon } from "@/components/github-icon"
 import { formatBytes, languageColor } from "@/lib/lang"
 import { repoUrl } from "@/lib/router"
@@ -36,6 +37,7 @@ export function Dashboard({ onMirror }: { onMirror: () => void }) {
         const error = mirrored.error
         const isAuth = error instanceof ApiError && error.status === 401
         return (
+          <>
           <div className="mt-6 flex flex-col items-center gap-3 rounded-md border py-16 text-center">
             <GithubIcon className="size-8 text-muted-foreground" />
             <div>
@@ -65,19 +67,24 @@ export function Dashboard({ onMirror }: { onMirror: () => void }) {
               )}
             </Button>
           </div>
+          {isAuth && <ExploreRepos />}
+          </>
         )
       })()}
 
       {mirrored.data && repos.length === 0 && (
-        <div className="mt-6 flex flex-col items-center gap-3 rounded-md border border-dashed py-16">
-          <GithubIcon className="size-8 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">
-            No mirrored repositories yet
-          </p>
-          <Button size="sm" onClick={onMirror}>
-            Mirror your first repo
-          </Button>
-        </div>
+        <>
+          <div className="mt-6 flex flex-col items-center gap-3 rounded-md border border-dashed py-16">
+            <GithubIcon className="size-8 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">
+              No mirrored repositories yet
+            </p>
+            <Button size="sm" onClick={onMirror}>
+              Mirror your first repo
+            </Button>
+          </div>
+          <ExploreRepos />
+        </>
       )}
 
       {repos.length > 0 && (

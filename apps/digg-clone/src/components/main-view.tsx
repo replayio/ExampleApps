@@ -40,7 +40,7 @@ export function MainView() {
   const feedSort = useUIStore((state) => state.feedSort)
   const setFeedSort = useUIStore((state) => state.setFeedSort)
   const setNewPostOpen = useUIStore((state) => state.setNewPostOpen)
-  const setSearchQuery = useUIStore((state) => state.setSearchQuery)
+  const toggleSearch = useUIStore((state) => state.toggleSearch)
   const { data: communities = [] } = useCommunities()
   const { data, isLoading } = useStories(feed === "search" ? "all" : feed)
 
@@ -73,7 +73,7 @@ export function MainView() {
                 className={`h-12 rounded-full px-7 text-[17px] font-black ${
                   feed === "my-feed"
                     ? "bg-white text-[#15151c] shadow-sm"
-                    : "text-[#8a8b96]"
+                    : "text-[#5e6070]"
                 }`}
               >
                 My Feed
@@ -101,10 +101,8 @@ export function MainView() {
             <div className="ml-auto flex items-center gap-5">
               <button
                 aria-label="Search"
-                onClick={() => {
-                  setSearchQuery("")
-                  setFeed("search")
-                }}
+                title="Search"
+                onClick={toggleSearch}
                 className="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#eceef3] text-[#3e404b]"
               >
                 <Search className="size-6" />

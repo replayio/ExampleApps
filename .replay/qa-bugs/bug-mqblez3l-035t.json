@@ -1,0 +1,273 @@
+{
+  "id": "bug-mqblez3l-035t",
+  "project_id": "proj-exampleapps-pr-8-digg-clone-mqbjvg8z",
+  "severity": "high",
+  "title": "New post modal has no opaque background or backdrop scrim; the feed shows through and overlaps the dialog, making it illegible",
+  "description": "Opening the 'New post' dialog (via the + button in the left sidebar) renders the dialog with a transparent panel and no full-screen backdrop/scrim. The post feed behind the dialog stays fully visible and overlaps the dialog: the 'New post' heading and the form labels/inputs (Headline, Short summary, source URL, image URL, community dropdown, Cancel/Post buttons) are drawn on top of feed posts ('Ask HN: Are you using Spec Driven Development?') and post thumbnail images. Both the dialog and the feed are illegible. The broken state persists the entire time the dialog is open (147012ms-180047ms).",
+  "reproduction_steps": null,
+  "expected_behavior": "The New post dialog should render on an opaque panel (a solid background) with a dimmed full-screen backdrop/scrim behind it, so the underlying feed is hidden/dimmed and the dialog's heading and form fields are clearly readable with no content bleeding through or overlapping.",
+  "actual_behavior": "The New post dialog opens without an opaque panel background and with no dimming backdrop behind it. The underlying feed (post titles, summaries, and right-hand thumbnail images) remains fully visible and overlaps the dialog's heading and form fields, so the form text collides with feed text and is hard to read.",
+  "replay_recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817",
+  "status": "open",
+  "notes": null,
+  "discovered_at": "2026-06-13T00:04:09.650Z",
+  "test_run_id": null,
+  "sent_to_webhook": false,
+  "analysis": {
+    "chain": [
+      {
+        "text": "With no opaque background on the dialog panel and no dimming backdrop rendered behind it, the underlying feed posts and thumbnail images keep painting at full opacity in the same screen region as the dialog. The dialog's heading and form fields therefore composite directly over the feed text and images, producing the overlapping, illegible result seen in the screenshots.",
+        "evidence": [
+          {
+            "tool": "SearchSources",
+            "params": {
+              "pattern": "New post",
+              "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817",
+              "includeGenerated": true
+            },
+            "result": "### https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/assets/index-Cq4YjLEO.js\nL53:55369: ...:inline-flex`,children:[(0,z.jsx)(wt,{className:`size-5`}),`New post`]})]})]}),(0,z.jsxs)(`div`,{className:`mx-auto mt-6...\nL53:59352: ... p-0`,children:[(0,z.jsx)(xf,{className:`sr-only`,children:`New post`}),(0,z.jsx)(`div`,{className:`border-b border-[#ec...\nL53:59496: ...n:(0,z.jsx)(`h2`,{className:`text-2xl font-black`,children:`New post`})}),(0,z.jsxs)(`div`,{className:`space-y-4 p-6`,ch...\n### https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/assets/index-Cq4YjLEO.js\nL53:55369: ...:inline-flex`,children:[(0,z.jsx)(wt,{className:`size-5`}),`New post`]})]})]}),(0,z.jsxs)(`div`,{className:`mx-auto mt-6...\nL53:59352: ... p-0`,children:[(0,z.jsx)(xf,{className:`sr-only`,children:`New post`}),(0,z.jsx)(`div`,{className:`border-b border-[#ec...\nL53:59496: ...n:(0,z.jsx)(`h2`,{className:`text-2xl font-black`,children:`New post`})}),(0,z.jsxs)(`div`,{className:`space-y-4 p-6`,ch...",
+            "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+          }
+        ]
+      }
+    ],
+    "chronology": [
+      {
+        "text": "On the Digg feed, the user clicks the circular '+' (New post) button at the bottom of the left sidebar to open the New post composer.",
+        "evidence": [
+          {
+            "tool": "Screenshot",
+            "params": {
+              "timestamp": 100255,
+              "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+            },
+            "result": "Screenshot at timestamp 100255: https://static.replay.io/recordings/ae506eb6-f547-45a1-b27a-de0e335b1817/analysis/screenshot-100255.jpg\nMouse position: 32.0% x 18.1%\nTime since last click: 257.000ms\nNext execution point: Point:33 @ 100307.00ms",
+            "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+          },
+          {
+            "tool": "UserInteractions",
+            "params": {
+              "mode": "interactions",
+              "type": "click",
+              "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+            },
+            "result": "# User Interactions\n\n**Filter:** click only\n**Showing 1–18 of 18 interactions**\n\n| # | Time | Type | Detail | Point |\n|---|------|------|--------|-------|\n| 0 | 44725ms | click | Click at (556, 273) | Point:1 |\n| 1 | 58600ms | click | Click at (810, 79) | Point:2 |\n| 2 | 63717ms | click | Click at (343, 403) | Point:3 |\n| 3 | 76485ms | click | Click at (131, 575) | Point:4 |\n| 4 | 99998ms | click | Click at (410, 130) | Point:5 |\n| 5 | 110463ms | click | Click at (1018, 60) | Point:6 |\n| 6 | 147012ms | click | Click at (131, 567) | Point:7 |\n| 7 | 180047ms | click | Click at (781, 570) | Point:8 |\n| 8 | 213766ms | click | Click at (1222, 403) | Point:9 |\n| 9 | 235342ms | click | Click at (1222, 403) | Point:10 |\n| 10 | 259343ms | click | Click at (1150, 403) | Point:11 |\n| 11 | 277444ms | click | Click at (536, 116) | Point:12 |\n| 12 | 293207ms | click | Click at (131, 631) | Point:13 |\n| 13 | 300322ms | click | Click at (131, 519) | Point:14 |\n| 14 | 330690ms | click | Click at (131, 695) | Point:15 |\n| 15 | 340737ms | click | Click at (47, 696) | Point:16 |\n| 16 | 344957ms | click | Click at (390, 179) | Point:17 |\n| 17 | 422422ms | click | Click at (489, 578) | Point:18 |\n\n## Next Steps\n\n- Use DescribePoint with a point reference to inspect the code at a specific interaction\n- Use Evaluate with a point reference for ad-hoc value inspection at that moment\n- Use `type: 'click'` or `type: 'keypress'` to filter by interaction type",
+            "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+          },
+          {
+            "tool": "InspectElement",
+            "params": {
+              "point": "Point:7",
+              "element": ".inline-flex",
+              "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+            },
+            "result": "Error: ElementPersistentIdCache:Failed | PauseCommandFailed",
+            "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+          }
+        ],
+        "is_interaction": true,
+        "screenshot_url": "https://static.replay.io/recordings/ae506eb6-f547-45a1-b27a-de0e335b1817/analysis/screenshot-100255.jpg"
+      },
+      {
+        "text": "The New post dialog opens but has no opaque background and no backdrop scrim. The feed behind it (the post 'Ask HN: Are you using Spec Driven Development?', a discussion-driven summary, and the circuit-board thumbnail images on the right) is fully visible through the dialog. The 'New post' heading and the form fields (Headline, Short summary, https://source.example/story, Optional image URL, the /technology dropdown, Cancel and Post buttons) are drawn on top of the feed text, with the dialog title overlapping the post title so both are hard to read.",
+        "evidence": [
+          {
+            "tool": "Screenshot",
+            "params": {
+              "timestamp": 147376,
+              "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+            },
+            "result": "Screenshot at timestamp 147376: https://static.replay.io/recordings/ae506eb6-f547-45a1-b27a-de0e335b1817/analysis/screenshot-147376.jpg\nMouse position: 10.2% x 78.8%\nTime since last click: 364.000ms\nNext execution point: Point:50 @ 147425.00ms",
+            "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+          }
+        ],
+        "is_interaction": false,
+        "screenshot_url": "https://static.replay.io/recordings/ae506eb6-f547-45a1-b27a-de0e335b1817/analysis/screenshot-147376.jpg"
+      },
+      {
+        "text": "The broken transparent state is stable, not a transition artifact: at 180376ms (over 33 seconds after the dialog opened) the dialog is still transparent with the feed showing through and overlapping the form.",
+        "evidence": [
+          {
+            "tool": "Screenshot",
+            "params": {
+              "timestamp": 180376,
+              "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+            },
+            "result": "Screenshot at timestamp 180376: https://static.replay.io/recordings/ae506eb6-f547-45a1-b27a-de0e335b1817/analysis/screenshot-180376.jpg\nMouse position: 61.0% x 79.2%\nTime since last click: 329.000ms\nNext execution point: Point:51 @ 180402.00ms",
+            "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+          }
+        ],
+        "is_interaction": false,
+        "screenshot_url": "https://static.replay.io/recordings/ae506eb6-f547-45a1-b27a-de0e335b1817/analysis/screenshot-180376.jpg"
+      }
+    ],
+    "root_cause": {
+      "text": "The New post dialog is rendered without an opaque panel background and without a full-screen backdrop/scrim element behind it. In the bundled markup the dialog's heading wrapper and body (the 'New post' h2 with className 'text-2xl font-black' and the body div with className 'space-y-4 p-6') carry no background-color and there is no sibling fixed full-viewport overlay providing a dimmed scrim, so the page content behind the dialog is neither covered by an opaque panel nor hidden by a backdrop. As a result the feed remains fully painted behind the dialog and its text/images overlap the dialog's heading and form fields.",
+      "evidence": [
+        {
+          "tool": "SearchSources",
+          "params": {
+            "pattern": "New post",
+            "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817",
+            "includeGenerated": true
+          },
+          "result": "### https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/assets/index-Cq4YjLEO.js\nL53:55369: ...:inline-flex`,children:[(0,z.jsx)(wt,{className:`size-5`}),`New post`]})]})]}),(0,z.jsxs)(`div`,{className:`mx-auto mt-6...\nL53:59352: ... p-0`,children:[(0,z.jsx)(xf,{className:`sr-only`,children:`New post`}),(0,z.jsx)(`div`,{className:`border-b border-[#ec...\nL53:59496: ...n:(0,z.jsx)(`h2`,{className:`text-2xl font-black`,children:`New post`})}),(0,z.jsxs)(`div`,{className:`space-y-4 p-6`,ch...\n### https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/assets/index-Cq4YjLEO.js\nL53:55369: ...:inline-flex`,children:[(0,z.jsx)(wt,{className:`size-5`}),`New post`]})]})]}),(0,z.jsxs)(`div`,{className:`mx-auto mt-6...\nL53:59352: ... p-0`,children:[(0,z.jsx)(xf,{className:`sr-only`,children:`New post`}),(0,z.jsx)(`div`,{className:`border-b border-[#ec...\nL53:59496: ...n:(0,z.jsx)(`h2`,{className:`text-2xl font-black`,children:`New post`})}),(0,z.jsxs)(`div`,{className:`space-y-4 p-6`,ch...",
+          "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+        }
+      ]
+    },
+    "buggy_behavior": "The New post modal is transparent and has no backdrop, so the post feed behind it shows through and its text/images overlap the modal heading and form fields, making the dialog illegible."
+  },
+  "judge_assessment": {
+    "approved": true,
+    "problems": [],
+    "assessment": "Evidence: Screenshot 1 (Image 1) shows the Digg feed with the /science topic selected, showing posts like 'Astrology Is Scientifically Provable' — this is the state before the dialog opens. Screenshot 2 (Image 2) clearly shows the 'New post' dialog overlapping the feed content behind it. The dialog's heading 'New post', form fields (Headline, Short summary), source URL, image URL, /technology dropdown, and Cancel/Post buttons are all visible, but so is the underlying feed post 'Ask HN: Are you using Spec Driven Development?' with its circuit-board thumbnail image from news.ycombinator.com. The feed content bleeds through the dialog area, confirming there is no opaque background or backdrop scrim. Screenshot 3 (Image 3) shows the identical broken state persisting over 33 seconds later, confirming this is not a transient animation artifact. The root cause claims the dialog panel and body elements (with classNames 'text-2xl font-black' and 'space-y-4 p-6') carry no background-color and no backdrop overlay exists. The SearchSources evidence confirms these exact className strings exist in the bundled source code. The claim about missing background-color is reasonable given what the screenshots clearly show — the dialog is transparent. While the InspectElement call failed, for a visual glitch bug the screenshots are the primary evidence, and they clearly demonstrate the problem. The chronology has 3 steps with screenshots, the buggy_behavior is clear, the title is specific, and the chain connects the root cause to the visible issue.\n\nRequirements: The screenshots clearly show the 'New post' modal dialog rendered without an opaque background or backdrop scrim. In Image 2 and Image 3, the feed content (post titles like 'Ask HN: Are you using Spec Driven Development?', thumbnail images from news.ycombinator.com) is fully visible through the dialog, overlapping with the dialog's form fields (Headline, Short summary, source URL, etc.) and making both the dialog and the feed illegible. The issue persists across multiple timestamps (147376ms and 180376ms), ruling out a transient animation artifact. This falls squarely under the guidelines' category of 'Modals or dialogs partially hidden by sibling elements' and more broadly 'Missing or broken visual elements.' The root cause analysis points to the dialog lacking an opaque panel background and no backdrop/scrim element, which is consistent with the visual evidence. The bug is well-documented with before (feed view), during (dialog open with transparency), and sustained (33 seconds later, still transparent) screenshots.",
+    "judge_type": "requirements"
+  },
+  "judge_submissions": [
+    {
+      "result": {
+        "approved": true,
+        "problems": [],
+        "assessment": "Evidence: Screenshot 1 (Image 1) shows the Digg feed with the /science topic selected, showing posts like 'Astrology Is Scientifically Provable' — this is the state before the dialog opens. Screenshot 2 (Image 2) clearly shows the 'New post' dialog overlapping the feed content behind it. The dialog's heading 'New post', form fields (Headline, Short summary), source URL, image URL, /technology dropdown, and Cancel/Post buttons are all visible, but so is the underlying feed post 'Ask HN: Are you using Spec Driven Development?' with its circuit-board thumbnail image from news.ycombinator.com. The feed content bleeds through the dialog area, confirming there is no opaque background or backdrop scrim. Screenshot 3 (Image 3) shows the identical broken state persisting over 33 seconds later, confirming this is not a transient animation artifact. The root cause claims the dialog panel and body elements (with classNames 'text-2xl font-black' and 'space-y-4 p-6') carry no background-color and no backdrop overlay exists. The SearchSources evidence confirms these exact className strings exist in the bundled source code. The claim about missing background-color is reasonable given what the screenshots clearly show — the dialog is transparent. While the InspectElement call failed, for a visual glitch bug the screenshots are the primary evidence, and they clearly demonstrate the problem. The chronology has 3 steps with screenshots, the buggy_behavior is clear, the title is specific, and the chain connects the root cause to the visible issue.\n\nRequirements: The screenshots clearly show the 'New post' modal dialog rendered without an opaque background or backdrop scrim. In Image 2 and Image 3, the feed content (post titles like 'Ask HN: Are you using Spec Driven Development?', thumbnail images from news.ycombinator.com) is fully visible through the dialog, overlapping with the dialog's form fields (Headline, Short summary, source URL, etc.) and making both the dialog and the feed illegible. The issue persists across multiple timestamps (147376ms and 180376ms), ruling out a transient animation artifact. This falls squarely under the guidelines' category of 'Modals or dialogs partially hidden by sibling elements' and more broadly 'Missing or broken visual elements.' The root cause analysis points to the dialog lacking an opaque panel background and no backdrop/scrim element, which is consistent with the visual evidence. The bug is well-documented with before (feed view), during (dialog open with transparency), and sustained (33 seconds later, still transparent) screenshots.",
+        "judge_type": "requirements"
+      },
+      "attempt": 1,
+      "submitted_at": "2026-06-13T00:04:09.393Z",
+      "submitted_data": {
+        "title": "New post modal has no opaque background or backdrop scrim; the feed shows through and overlaps the dialog, making it illegible",
+        "analysis": {
+          "chain": [
+            {
+              "text": "With no opaque background on the dialog panel and no dimming backdrop rendered behind it, the underlying feed posts and thumbnail images keep painting at full opacity in the same screen region as the dialog. The dialog's heading and form fields therefore composite directly over the feed text and images, producing the overlapping, illegible result seen in the screenshots.",
+              "evidence": [
+                {
+                  "tool": "SearchSources",
+                  "params": {
+                    "pattern": "New post",
+                    "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817",
+                    "includeGenerated": true
+                  },
+                  "result": "### https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/assets/index-Cq4YjLEO.js\nL53:55369: ...:inline-flex`,children:[(0,z.jsx)(wt,{className:`size-5`}),`New post`]})]})]}),(0,z.jsxs)(`div`,{className:`mx-auto mt-6...\nL53:59352: ... p-0`,children:[(0,z.jsx)(xf,{className:`sr-only`,children:`New post`}),(0,z.jsx)(`div`,{className:`border-b border-[#ec...\nL53:59496: ...n:(0,z.jsx)(`h2`,{className:`text-2xl font-black`,children:`New post`})}),(0,z.jsxs)(`div`,{className:`space-y-4 p-6`,ch...\n### https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/assets/index-Cq4YjLEO.js\nL53:55369: ...:inline-flex`,children:[(0,z.jsx)(wt,{className:`size-5`}),`New post`]})]})]}),(0,z.jsxs)(`div`,{className:`mx-auto mt-6...\nL53:59352: ... p-0`,children:[(0,z.jsx)(xf,{className:`sr-only`,children:`New post`}),(0,z.jsx)(`div`,{className:`border-b border-[#ec...\nL53:59496: ...n:(0,z.jsx)(`h2`,{className:`text-2xl font-black`,children:`New post`})}),(0,z.jsxs)(`div`,{className:`space-y-4 p-6`,ch...",
+                  "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+                }
+              ]
+            }
+          ],
+          "chronology": [
+            {
+              "text": "On the Digg feed, the user clicks the circular '+' (New post) button at the bottom of the left sidebar to open the New post composer.",
+              "evidence": [
+                {
+                  "tool": "Screenshot",
+                  "params": {
+                    "timestamp": 100255,
+                    "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+                  },
+                  "result": "Screenshot at timestamp 100255: https://static.replay.io/recordings/ae506eb6-f547-45a1-b27a-de0e335b1817/analysis/screenshot-100255.jpg\nMouse position: 32.0% x 18.1%\nTime since last click: 257.000ms\nNext execution point: Point:33 @ 100307.00ms",
+                  "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+                },
+                {
+                  "tool": "UserInteractions",
+                  "params": {
+                    "mode": "interactions",
+                    "type": "click",
+                    "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+                  },
+                  "result": "# User Interactions\n\n**Filter:** click only\n**Showing 1–18 of 18 interactions**\n\n| # | Time | Type | Detail | Point |\n|---|------|------|--------|-------|\n| 0 | 44725ms | click | Click at (556, 273) | Point:1 |\n| 1 | 58600ms | click | Click at (810, 79) | Point:2 |\n| 2 | 63717ms | click | Click at (343, 403) | Point:3 |\n| 3 | 76485ms | click | Click at (131, 575) | Point:4 |\n| 4 | 99998ms | click | Click at (410, 130) | Point:5 |\n| 5 | 110463ms | click | Click at (1018, 60) | Point:6 |\n| 6 | 147012ms | click | Click at (131, 567) | Point:7 |\n| 7 | 180047ms | click | Click at (781, 570) | Point:8 |\n| 8 | 213766ms | click | Click at (1222, 403) | Point:9 |\n| 9 | 235342ms | click | Click at (1222, 403) | Point:10 |\n| 10 | 259343ms | click | Click at (1150, 403) | Point:11 |\n| 11 | 277444ms | click | Click at (536, 116) | Point:12 |\n| 12 | 293207ms | click | Click at (131, 631) | Point:13 |\n| 13 | 300322ms | click | Click at (131, 519) | Point:14 |\n| 14 | 330690ms | click | Click at (131, 695) | Point:15 |\n| 15 | 340737ms | click | Click at (47, 696) | Point:16 |\n| 16 | 344957ms | click | Click at (390, 179) | Point:17 |\n| 17 | 422422ms | click | Click at (489, 578) | Point:18 |\n\n## Next Steps\n\n- Use DescribePoint with a point reference to inspect the code at a specific interaction\n- Use Evaluate with a point reference for ad-hoc value inspection at that moment\n- Use `type: 'click'` or `type: 'keypress'` to filter by interaction type",
+                  "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+                },
+                {
+                  "tool": "InspectElement",
+                  "params": {
+                    "point": "Point:7",
+                    "element": ".inline-flex",
+                    "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+                  },
+                  "result": "Error: ElementPersistentIdCache:Failed | PauseCommandFailed",
+                  "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+                }
+              ],
+              "is_interaction": true,
+              "screenshot_url": "https://static.replay.io/recordings/ae506eb6-f547-45a1-b27a-de0e335b1817/analysis/screenshot-100255.jpg"
+            },
+            {
+              "text": "The New post dialog opens but has no opaque background and no backdrop scrim. The feed behind it (the post 'Ask HN: Are you using Spec Driven Development?', a discussion-driven summary, and the circuit-board thumbnail images on the right) is fully visible through the dialog. The 'New post' heading and the form fields (Headline, Short summary, https://source.example/story, Optional image URL, the /technology dropdown, Cancel and Post buttons) are drawn on top of the feed text, with the dialog title overlapping the post title so both are hard to read.",
+              "evidence": [
+                {
+                  "tool": "Screenshot",
+                  "params": {
+                    "timestamp": 147376,
+                    "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+                  },
+                  "result": "Screenshot at timestamp 147376: https://static.replay.io/recordings/ae506eb6-f547-45a1-b27a-de0e335b1817/analysis/screenshot-147376.jpg\nMouse position: 10.2% x 78.8%\nTime since last click: 364.000ms\nNext execution point: Point:50 @ 147425.00ms",
+                  "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+                }
+              ],
+              "is_interaction": false,
+              "screenshot_url": "https://static.replay.io/recordings/ae506eb6-f547-45a1-b27a-de0e335b1817/analysis/screenshot-147376.jpg"
+            },
+            {
+              "text": "The broken transparent state is stable, not a transition artifact: at 180376ms (over 33 seconds after the dialog opened) the dialog is still transparent with the feed showing through and overlapping the form.",
+              "evidence": [
+                {
+                  "tool": "Screenshot",
+                  "params": {
+                    "timestamp": 180376,
+                    "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+                  },
+                  "result": "Screenshot at timestamp 180376: https://static.replay.io/recordings/ae506eb6-f547-45a1-b27a-de0e335b1817/analysis/screenshot-180376.jpg\nMouse position: 61.0% x 79.2%\nTime since last click: 329.000ms\nNext execution point: Point:51 @ 180402.00ms",
+                  "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+                }
+              ],
+              "is_interaction": false,
+              "screenshot_url": "https://static.replay.io/recordings/ae506eb6-f547-45a1-b27a-de0e335b1817/analysis/screenshot-180376.jpg"
+            }
+          ],
+          "root_cause": {
+            "text": "The New post dialog is rendered without an opaque panel background and without a full-screen backdrop/scrim element behind it. In the bundled markup the dialog's heading wrapper and body (the 'New post' h2 with className 'text-2xl font-black' and the body div with className 'space-y-4 p-6') carry no background-color and there is no sibling fixed full-viewport overlay providing a dimmed scrim, so the page content behind the dialog is neither covered by an opaque panel nor hidden by a backdrop. As a result the feed remains fully painted behind the dialog and its text/images overlap the dialog's heading and form fields.",
+            "evidence": [
+              {
+                "tool": "SearchSources",
+                "params": {
+                  "pattern": "New post",
+                  "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817",
+                  "includeGenerated": true
+                },
+                "result": "### https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/assets/index-Cq4YjLEO.js\nL53:55369: ...:inline-flex`,children:[(0,z.jsx)(wt,{className:`size-5`}),`New post`]})]})]}),(0,z.jsxs)(`div`,{className:`mx-auto mt-6...\nL53:59352: ... p-0`,children:[(0,z.jsx)(xf,{className:`sr-only`,children:`New post`}),(0,z.jsx)(`div`,{className:`border-b border-[#ec...\nL53:59496: ...n:(0,z.jsx)(`h2`,{className:`text-2xl font-black`,children:`New post`})}),(0,z.jsxs)(`div`,{className:`space-y-4 p-6`,ch...\n### https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/assets/index-Cq4YjLEO.js\nL53:55369: ...:inline-flex`,children:[(0,z.jsx)(wt,{className:`size-5`}),`New post`]})]})]}),(0,z.jsxs)(`div`,{className:`mx-auto mt-6...\nL53:59352: ... p-0`,children:[(0,z.jsx)(xf,{className:`sr-only`,children:`New post`}),(0,z.jsx)(`div`,{className:`border-b border-[#ec...\nL53:59496: ...n:(0,z.jsx)(`h2`,{className:`text-2xl font-black`,children:`New post`})}),(0,z.jsxs)(`div`,{className:`space-y-4 p-6`,ch...",
+                "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+              }
+            ]
+          },
+          "buggy_behavior": "The New post modal is transparent and has no backdrop, so the post feed behind it shows through and its text/images overlap the modal heading and form fields, making the dialog illegible."
+        },
+        "description": "Opening the 'New post' dialog (via the + button in the left sidebar) renders the dialog with a transparent panel and no full-screen backdrop/scrim. The post feed behind the dialog stays fully visible and overlaps the dialog: the 'New post' heading and the form labels/inputs (Headline, Short summary, source URL, image URL, community dropdown, Cancel/Post buttons) are drawn on top of feed posts ('Ask HN: Are you using Spec Driven Development?') and post thumbnail images. Both the dialog and the feed are illegible. The broken state persists the entire time the dialog is open (147012ms-180047ms)."
+      },
+      "evidence_result": {
+        "approved": true,
+        "problems": [],
+        "assessment": "Screenshot 1 (Image 1) shows the Digg feed with the /science topic selected, showing posts like 'Astrology Is Scientifically Provable' — this is the state before the dialog opens. Screenshot 2 (Image 2) clearly shows the 'New post' dialog overlapping the feed content behind it. The dialog's heading 'New post', form fields (Headline, Short summary), source URL, image URL, /technology dropdown, and Cancel/Post buttons are all visible, but so is the underlying feed post 'Ask HN: Are you using Spec Driven Development?' with its circuit-board thumbnail image from news.ycombinator.com. The feed content bleeds through the dialog area, confirming there is no opaque background or backdrop scrim. Screenshot 3 (Image 3) shows the identical broken state persisting over 33 seconds later, confirming this is not a transient animation artifact. The root cause claims the dialog panel and body elements (with classNames 'text-2xl font-black' and 'space-y-4 p-6') carry no background-color and no backdrop overlay exists. The SearchSources evidence confirms these exact className strings exist in the bundled source code. The claim about missing background-color is reasonable given what the screenshots clearly show — the dialog is transparent. While the InspectElement call failed, for a visual glitch bug the screenshots are the primary evidence, and they clearly demonstrate the problem. The chronology has 3 steps with screenshots, the buggy_behavior is clear, the title is specific, and the chain connects the root cause to the visible issue.",
+        "judge_type": "evidence"
+      },
+      "requirements_result": {
+        "approved": true,
+        "problems": [],
+        "assessment": "The screenshots clearly show the 'New post' modal dialog rendered without an opaque background or backdrop scrim. In Image 2 and Image 3, the feed content (post titles like 'Ask HN: Are you using Spec Driven Development?', thumbnail images from news.ycombinator.com) is fully visible through the dialog, overlapping with the dialog's form fields (Headline, Short summary, source URL, etc.) and making both the dialog and the feed illegible. The issue persists across multiple timestamps (147376ms and 180376ms), ruling out a transient animation artifact. This falls squarely under the guidelines' category of 'Modals or dialogs partially hidden by sibling elements' and more broadly 'Missing or broken visual elements.' The root cause analysis points to the dialog lacking an opaque panel background and no backdrop/scrim element, which is consistent with the visual evidence. The bug is well-documented with before (feed view), during (dialog open with transparency), and sustained (33 seconds later, still transparent) screenshots.",
+        "judge_type": "requirements"
+      }
+    }
+  ],
+  "callback_url": null,
+  "polish_category": "glitches",
+  "video_spec": null,
+  "video_url": null,
+  "guidance_deps": null,
+  "polish_pass_id": "pass-1781307111057-ssjp11q4",
+  "screenshot_spec": null,
+  "task_id": "task-1781307111057-woszn3fk",
+  "project_name": "ExampleApps PR #8 - digg-clone",
+  "journey_id": null,
+  "journey_name": null,
+  "test_run_replay_recording_ids": null,
+  "duplicates": []
+}

@@ -1,0 +1,231 @@
+{
+  "id": "bug-mqbk6u2b-yu9o",
+  "project_id": "proj-exampleapps-pr-8-digg-clone-mqbjvg8z",
+  "severity": "high",
+  "title": "Feed thumbnail source-domain labels render as invisible white text over the light image placeholder",
+  "description": "Each feed post card overlays the story's source domain (e.g. \"tombedor.dev\", \"innovativegenomics.org\") as white text in the bottom-right corner of the thumbnail. The label has color:#fff, text-shadow:none, and a transparent background, and the thumbnail button's placeholder background is light gray (bg-[#ececf1], rgb(236,236,241)). While the image is loading — and permanently for any post whose thumbnail fails to load (the Unsplash image photo-1461784180009 returns HTTP 404) — the white label sits on the light-gray placeholder at a contrast ratio of ~1.18:1 and is effectively invisible. Because the label has no scrim/gradient/text-shadow, its legibility also remains poor over light-colored loaded images.",
+  "reproduction_steps": null,
+  "expected_behavior": "The source-domain label should remain legible regardless of the thumbnail's state — e.g. a dark gradient scrim or text-shadow behind the label, or a non-white label color over light placeholders — so it never drops below the WCAG AA 4.5:1 contrast minimum.",
+  "actual_behavior": "During thumbnail loading (and permanently for the 404 thumbnail), the source-domain label is white text on the light-gray placeholder (~1.18:1) and cannot be read. The screenshot at 4967ms shows \"tombedor.dev\" and \"innovativegenomics.org\" as ghost text barely distinguishable from the gray box.",
+  "replay_recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7",
+  "status": "open",
+  "notes": null,
+  "discovered_at": "2026-06-12T23:29:50.192Z",
+  "test_run_id": "run-mqbjvgjo-hqml",
+  "sent_to_webhook": false,
+  "analysis": {
+    "chain": [
+      {
+        "text": "The thumbnail placeholder color #ececf1 stays behind the label until the image loads, and for the post whose thumbnail requests photo-1461784180009 the image returns HTTP 404 (twice), so the placeholder — and therefore the invisible-label state — is permanent for that card.",
+        "evidence": [
+          {
+            "tool": "NetworkRequest",
+            "params": {
+              "urlFilter": "photo-1461784180009",
+              "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+            },
+            "result": "# Network Requests — Summary\n\n**Filters:** URL contains \"photo-1461784180009\"\n**Total requests:** 2 (of 34 total)\n**Failed (HTTP ≥400):** 2\n**Slow (≥2000ms):** 0\n\n**Response times:** avg 364ms, median 364ms, max 633ms\n\n## Status Distribution\n\n| Status | Count |\n|--------|-------|\n| 4xx | 2 |\n\n## Top Domains\n\n| Domain | Count |\n|--------|-------|\n| images.unsplash.com | 2 |\n\n## Next Steps\n\n- Use `mode: 'requests'` to browse the full request list with pagination\n- Use `urlFilter` to narrow to failing endpoints",
+            "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+          }
+        ]
+      }
+    ],
+    "chronology": [
+      {
+        "text": "The Digg feed loads. Post thumbnails are still being fetched, so each thumbnail shows its light-gray placeholder box (bg-[#ececf1]).",
+        "evidence": [
+          {
+            "tool": "Screenshot",
+            "params": {
+              "timestamp": 1575,
+              "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+            },
+            "result": "Screenshot at timestamp 1575: https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-1575.jpg\nNext execution point: Point:2 @ 1688.00ms",
+            "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+          }
+        ],
+        "is_interaction": false,
+        "screenshot_url": "https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-1575.jpg"
+      },
+      {
+        "text": "While the thumbnails are on their light-gray placeholders, the white source-domain labels \"tombedor.dev\" and \"innovativegenomics.org\" are overlaid on them and are effectively invisible — only faint ghost text is visible against the gray boxes.",
+        "evidence": [
+          {
+            "tool": "Screenshot",
+            "params": {
+              "timestamp": 4967,
+              "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+            },
+            "result": "Screenshot at timestamp 4967: https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-4967.jpg\nNext execution point: Point:23 @ 4993.00ms",
+            "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+          }
+        ],
+        "is_interaction": false,
+        "screenshot_url": "https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-4967.jpg"
+      },
+      {
+        "text": "Once images load, the same labels appear over the photos, but because there is no scrim the white label over the light-toned robot image (\"tombedor.dev\") remains low contrast and hard to read. For posts whose image 404s, the placeholder never resolves and the label stays invisible.",
+        "evidence": [
+          {
+            "tool": "Screenshot",
+            "params": {
+              "timestamp": 13785,
+              "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+            },
+            "result": "Screenshot at timestamp 13785: https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-13785.jpg\nNext execution point: Point:5 @ 13814.50ms",
+            "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+          }
+        ],
+        "is_interaction": false,
+        "screenshot_url": "https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-13785.jpg"
+      }
+    ],
+    "root_cause": {
+      "text": "The domain-label span is styled color:rgb(255,255,255) with text-shadow:none and background:rgba(0,0,0,0) (transparent), positioned absolutely over a thumbnail button whose class includes bg-[#ececf1] (rgb(236,236,241)). Evaluating the live DOM confirms these computed styles. With no text-shadow or background scrim, white-on-#ececf1 yields ~1.18:1 contrast, so the label is invisible whenever the placeholder color (rather than a dark image) is behind it.",
+      "evidence": [
+        {
+          "tool": "Evaluate",
+          "params": {
+            "point": "Point:5",
+            "expression": "JSON.stringify(Array.from(document.querySelectorAll('span')).filter(e=>e.textContent.trim()==='tombedor.dev').map(e=>{var c=getComputedStyle(e);return {color:c.color,textShadow:c.textShadow,bg:c.backgroundColor,parentBg:getComputedStyle(e.parentElement).backgroundColor,parentClass:e.parentElement.className}}))",
+            "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+          },
+          "result": "\"[{\\\"color\\\":\\\"rgb(255, 255, 255)\\\",\\\"textShadow\\\":\\\"none\\\",\\\"bg\\\":\\\"rgba(0, 0, 0, 0)\\\",\\\"parentBg\\\":\\\"rgb(236, 236, 241)\\\",\\\"parentClass\\\":\\\"relative mt-2 hidden h-[174px] w-[344px] shrink-0 overflow-hidden rounded-[18px] bg-[#ececf1] shadow-[0_20px_40px_rgba(20,20,24,0.12)] lg:block\\\"}]\"",
+          "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+        }
+      ]
+    },
+    "buggy_behavior": "The source-domain label overlaid on each feed thumbnail is white text with no scrim or shadow; over the light-gray image placeholder it renders at ~1.18:1 contrast and is invisible to the user."
+  },
+  "judge_assessment": {
+    "approved": true,
+    "problems": [],
+    "assessment": "Evidence: Screenshot 1 (Image 1) shows the Digg feed in a loading state with 'Loading stories...' text and no post cards visible yet — consistent with the chronology claim that thumbnails are still being fetched. Screenshot 2 (Image 2) shows two post cards with light-gray placeholder boxes where thumbnails should be. The source-domain labels ('tombedor.dev' and 'innovativegenomics.org') are barely visible as faint white text in the bottom-right corners of these gray placeholders, confirming the claimed invisible-label glitch. Screenshot 3 (Image 3) shows the same posts with images loaded — the 'tombedor.dev' label over the light-toned robot image remains hard to read due to poor contrast, while 'innovativegenomics.org' over the darker CRISPR image is more legible but still lacks a proper scrim. The root cause evidence from the Evaluate tool confirms the specific computed styles: color rgb(255,255,255), textShadow 'none', background rgba(0,0,0,0), and parentBg rgb(236,236,241) with the class bg-[#ececf1] — all matching the claims in the root cause text. The NetworkRequest evidence confirms 2 requests to 'photo-1461784180009' both returning 4xx status, supporting the claim about permanent placeholder state for failed thumbnails. The contrast ratio claim of ~1.18:1 is a reasonable calculation from white (#ffffff) on #ececf1. All factual claims are traceable to evidence results. The report precisely identifies the affected UI element (source-domain label spans), their location (bottom-right of thumbnail), and provides both visual and DOM-level evidence.\n\nRequirements: The bug report documents a genuine invisible-text issue that matches the project's guidelines precisely. In Image 2 (timestamp 4967), the thumbnails show light-gray placeholders with the source-domain labels ('tombedor.dev', 'innovativegenomics.org') rendered as white text that is effectively invisible against the gray background — you can barely make out the text in the bottom-right corners. In Image 3 (timestamp 13785), after images load, the labels become somewhat more visible but 'tombedor.dev' over the light-toned robot image still has poor contrast. The root cause is well-supported by DOM evaluation evidence showing color:rgb(255,255,255) on a transparent background over a parent with bg-[#ececf1] (rgb(236,236,241)), yielding ~1.18:1 contrast ratio. The network evidence confirms the Unsplash image returns HTTP 404 (2 failed requests), making the invisible state permanent for that card. This is exactly the type of invisible-text finding the guidelines prioritize as critical.",
+    "judge_type": "requirements"
+  },
+  "judge_submissions": [
+    {
+      "result": {
+        "approved": true,
+        "problems": [],
+        "assessment": "Evidence: Screenshot 1 (Image 1) shows the Digg feed in a loading state with 'Loading stories...' text and no post cards visible yet — consistent with the chronology claim that thumbnails are still being fetched. Screenshot 2 (Image 2) shows two post cards with light-gray placeholder boxes where thumbnails should be. The source-domain labels ('tombedor.dev' and 'innovativegenomics.org') are barely visible as faint white text in the bottom-right corners of these gray placeholders, confirming the claimed invisible-label glitch. Screenshot 3 (Image 3) shows the same posts with images loaded — the 'tombedor.dev' label over the light-toned robot image remains hard to read due to poor contrast, while 'innovativegenomics.org' over the darker CRISPR image is more legible but still lacks a proper scrim. The root cause evidence from the Evaluate tool confirms the specific computed styles: color rgb(255,255,255), textShadow 'none', background rgba(0,0,0,0), and parentBg rgb(236,236,241) with the class bg-[#ececf1] — all matching the claims in the root cause text. The NetworkRequest evidence confirms 2 requests to 'photo-1461784180009' both returning 4xx status, supporting the claim about permanent placeholder state for failed thumbnails. The contrast ratio claim of ~1.18:1 is a reasonable calculation from white (#ffffff) on #ececf1. All factual claims are traceable to evidence results. The report precisely identifies the affected UI element (source-domain label spans), their location (bottom-right of thumbnail), and provides both visual and DOM-level evidence.\n\nRequirements: The bug report documents a genuine invisible-text issue that matches the project's guidelines precisely. In Image 2 (timestamp 4967), the thumbnails show light-gray placeholders with the source-domain labels ('tombedor.dev', 'innovativegenomics.org') rendered as white text that is effectively invisible against the gray background — you can barely make out the text in the bottom-right corners. In Image 3 (timestamp 13785), after images load, the labels become somewhat more visible but 'tombedor.dev' over the light-toned robot image still has poor contrast. The root cause is well-supported by DOM evaluation evidence showing color:rgb(255,255,255) on a transparent background over a parent with bg-[#ececf1] (rgb(236,236,241)), yielding ~1.18:1 contrast ratio. The network evidence confirms the Unsplash image returns HTTP 404 (2 failed requests), making the invisible state permanent for that card. This is exactly the type of invisible-text finding the guidelines prioritize as critical.",
+        "judge_type": "requirements"
+      },
+      "attempt": 1,
+      "submitted_at": "2026-06-12T23:29:50.002Z",
+      "submitted_data": {
+        "title": "Feed thumbnail source-domain labels render as invisible white text over the light image placeholder",
+        "analysis": {
+          "chain": [
+            {
+              "text": "The thumbnail placeholder color #ececf1 stays behind the label until the image loads, and for the post whose thumbnail requests photo-1461784180009 the image returns HTTP 404 (twice), so the placeholder — and therefore the invisible-label state — is permanent for that card.",
+              "evidence": [
+                {
+                  "tool": "NetworkRequest",
+                  "params": {
+                    "urlFilter": "photo-1461784180009",
+                    "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+                  },
+                  "result": "# Network Requests — Summary\n\n**Filters:** URL contains \"photo-1461784180009\"\n**Total requests:** 2 (of 34 total)\n**Failed (HTTP ≥400):** 2\n**Slow (≥2000ms):** 0\n\n**Response times:** avg 364ms, median 364ms, max 633ms\n\n## Status Distribution\n\n| Status | Count |\n|--------|-------|\n| 4xx | 2 |\n\n## Top Domains\n\n| Domain | Count |\n|--------|-------|\n| images.unsplash.com | 2 |\n\n## Next Steps\n\n- Use `mode: 'requests'` to browse the full request list with pagination\n- Use `urlFilter` to narrow to failing endpoints",
+                  "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+                }
+              ]
+            }
+          ],
+          "chronology": [
+            {
+              "text": "The Digg feed loads. Post thumbnails are still being fetched, so each thumbnail shows its light-gray placeholder box (bg-[#ececf1]).",
+              "evidence": [
+                {
+                  "tool": "Screenshot",
+                  "params": {
+                    "timestamp": 1575,
+                    "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+                  },
+                  "result": "Screenshot at timestamp 1575: https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-1575.jpg\nNext execution point: Point:2 @ 1688.00ms",
+                  "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+                }
+              ],
+              "is_interaction": false,
+              "screenshot_url": "https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-1575.jpg"
+            },
+            {
+              "text": "While the thumbnails are on their light-gray placeholders, the white source-domain labels \"tombedor.dev\" and \"innovativegenomics.org\" are overlaid on them and are effectively invisible — only faint ghost text is visible against the gray boxes.",
+              "evidence": [
+                {
+                  "tool": "Screenshot",
+                  "params": {
+                    "timestamp": 4967,
+                    "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+                  },
+                  "result": "Screenshot at timestamp 4967: https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-4967.jpg\nNext execution point: Point:23 @ 4993.00ms",
+                  "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+                }
+              ],
+              "is_interaction": false,
+              "screenshot_url": "https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-4967.jpg"
+            },
+            {
+              "text": "Once images load, the same labels appear over the photos, but because there is no scrim the white label over the light-toned robot image (\"tombedor.dev\") remains low contrast and hard to read. For posts whose image 404s, the placeholder never resolves and the label stays invisible.",
+              "evidence": [
+                {
+                  "tool": "Screenshot",
+                  "params": {
+                    "timestamp": 13785,
+                    "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+                  },
+                  "result": "Screenshot at timestamp 13785: https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-13785.jpg\nNext execution point: Point:5 @ 13814.50ms",
+                  "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+                }
+              ],
+              "is_interaction": false,
+              "screenshot_url": "https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-13785.jpg"
+            }
+          ],
+          "root_cause": {
+            "text": "The domain-label span is styled color:rgb(255,255,255) with text-shadow:none and background:rgba(0,0,0,0) (transparent), positioned absolutely over a thumbnail button whose class includes bg-[#ececf1] (rgb(236,236,241)). Evaluating the live DOM confirms these computed styles. With no text-shadow or background scrim, white-on-#ececf1 yields ~1.18:1 contrast, so the label is invisible whenever the placeholder color (rather than a dark image) is behind it.",
+            "evidence": [
+              {
+                "tool": "Evaluate",
+                "params": {
+                  "point": "Point:5",
+                  "expression": "JSON.stringify(Array.from(document.querySelectorAll('span')).filter(e=>e.textContent.trim()==='tombedor.dev').map(e=>{var c=getComputedStyle(e);return {color:c.color,textShadow:c.textShadow,bg:c.backgroundColor,parentBg:getComputedStyle(e.parentElement).backgroundColor,parentClass:e.parentElement.className}}))",
+                  "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+                },
+                "result": "\"[{\\\"color\\\":\\\"rgb(255, 255, 255)\\\",\\\"textShadow\\\":\\\"none\\\",\\\"bg\\\":\\\"rgba(0, 0, 0, 0)\\\",\\\"parentBg\\\":\\\"rgb(236, 236, 241)\\\",\\\"parentClass\\\":\\\"relative mt-2 hidden h-[174px] w-[344px] shrink-0 overflow-hidden rounded-[18px] bg-[#ececf1] shadow-[0_20px_40px_rgba(20,20,24,0.12)] lg:block\\\"}]\"",
+                "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+              }
+            ]
+          },
+          "buggy_behavior": "The source-domain label overlaid on each feed thumbnail is white text with no scrim or shadow; over the light-gray image placeholder it renders at ~1.18:1 contrast and is invisible to the user."
+        },
+        "description": "Each feed post card overlays the story's source domain (e.g. \"tombedor.dev\", \"innovativegenomics.org\") as white text in the bottom-right corner of the thumbnail. The label has color:#fff, text-shadow:none, and a transparent background, and the thumbnail button's placeholder background is light gray (bg-[#ececf1], rgb(236,236,241)). While the image is loading — and permanently for any post whose thumbnail fails to load (the Unsplash image photo-1461784180009 returns HTTP 404) — the white label sits on the light-gray placeholder at a contrast ratio of ~1.18:1 and is effectively invisible. Because the label has no scrim/gradient/text-shadow, its legibility also remains poor over light-colored loaded images."
+      },
+      "evidence_result": {
+        "approved": true,
+        "problems": [],
+        "assessment": "Screenshot 1 (Image 1) shows the Digg feed in a loading state with 'Loading stories...' text and no post cards visible yet — consistent with the chronology claim that thumbnails are still being fetched. Screenshot 2 (Image 2) shows two post cards with light-gray placeholder boxes where thumbnails should be. The source-domain labels ('tombedor.dev' and 'innovativegenomics.org') are barely visible as faint white text in the bottom-right corners of these gray placeholders, confirming the claimed invisible-label glitch. Screenshot 3 (Image 3) shows the same posts with images loaded — the 'tombedor.dev' label over the light-toned robot image remains hard to read due to poor contrast, while 'innovativegenomics.org' over the darker CRISPR image is more legible but still lacks a proper scrim. The root cause evidence from the Evaluate tool confirms the specific computed styles: color rgb(255,255,255), textShadow 'none', background rgba(0,0,0,0), and parentBg rgb(236,236,241) with the class bg-[#ececf1] — all matching the claims in the root cause text. The NetworkRequest evidence confirms 2 requests to 'photo-1461784180009' both returning 4xx status, supporting the claim about permanent placeholder state for failed thumbnails. The contrast ratio claim of ~1.18:1 is a reasonable calculation from white (#ffffff) on #ececf1. All factual claims are traceable to evidence results. The report precisely identifies the affected UI element (source-domain label spans), their location (bottom-right of thumbnail), and provides both visual and DOM-level evidence.",
+        "judge_type": "evidence"
+      },
+      "requirements_result": {
+        "approved": true,
+        "problems": [],
+        "assessment": "The bug report documents a genuine invisible-text issue that matches the project's guidelines precisely. In Image 2 (timestamp 4967), the thumbnails show light-gray placeholders with the source-domain labels ('tombedor.dev', 'innovativegenomics.org') rendered as white text that is effectively invisible against the gray background — you can barely make out the text in the bottom-right corners. In Image 3 (timestamp 13785), after images load, the labels become somewhat more visible but 'tombedor.dev' over the light-toned robot image still has poor contrast. The root cause is well-supported by DOM evaluation evidence showing color:rgb(255,255,255) on a transparent background over a parent with bg-[#ececf1] (rgb(236,236,241)), yielding ~1.18:1 contrast ratio. The network evidence confirms the Unsplash image returns HTTP 404 (2 failed requests), making the invisible state permanent for that card. This is exactly the type of invisible-text finding the guidelines prioritize as critical.",
+        "judge_type": "requirements"
+      }
+    }
+  ],
+  "callback_url": null,
+  "polish_category": "glitches",
+  "video_spec": null,
+  "video_url": null,
+  "guidance_deps": null,
+  "polish_pass_id": "pass-1781306565554-1ffov0xm",
+  "screenshot_spec": null,
+  "task_id": "task-1781306565554-kvsjzjei",
+  "project_name": "ExampleApps PR #8 - digg-clone",
+  "journey_id": "journey-mqbjvgc1-desg",
+  "journey_name": "Load the main page",
+  "test_run_replay_recording_ids": null,
+  "duplicates": []
+}

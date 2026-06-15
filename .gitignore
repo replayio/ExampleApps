@@ -11,3 +11,6 @@ dist/
 coverage/
 *.tsbuildinfo
 netlify-deployments.md
+netlify-deployments.json
+replay-qa-results.md
+replay-qa-results.json

@@ -50,7 +50,7 @@ interface CachedStories {
 const GDELT_URL = "https://api.gdeltproject.org/api/v2/doc/doc"
 const HN_URL = "https://hn.algolia.com/api/v1"
 const CACHE_TTL_MS = 1000 * 60 * 5
-const GDELT_TIMEOUT_MS = 3200
+const GDELT_TIMEOUT_MS = 2000
 const liveCache = new Map<string, CachedStories>()
 const storyIndex = new Map<string, Story>()
 
@@ -324,14 +324,22 @@ async function fetchHnStories(feed: FeedId, q: string) {
 }
 
 async function fetchLiveStories(feed: FeedId, q: string) {
-  try {
-    const gdelt = await fetchGdeltStories(feed, q)
-    if (gdelt.length > 0) return { source: "gdelt" as const, stories: gdelt }
-  } catch {
-    // Fall through to the no-key HN Search API.
+  // Query both sources concurrently so total latency is the slower of the two
+  // rather than GDELT's timeout *plus* HN's round-trip (which left the feed
+  // endpoint at ~4s). GDELT is still preferred when it returns results.
+  const [gdeltResult, hnResult] = await Promise.allSettled([
+    fetchGdeltStories(feed, q),
+    fetchHnStories(feed, q),
+  ])
+
+  if (gdeltResult.status === "fulfilled" && gdeltResult.value.length > 0) {
+    return { source: "gdelt" as const, stories: gdeltResult.value }
   }
-  const hn = await fetchHnStories(feed, q)
-  return { source: "hn" as const, stories: hn }
+  if (hnResult.status === "fulfilled") {
+    return { source: "hn" as const, stories: hnResult.value }
+  }
+  throw hnResult.reason ??
+    (gdeltResult.status === "rejected" ? gdeltResult.reason : new Error("live fetch failed"))
 }
 
 function localStoriesFor(feed: FeedId, q = "") {

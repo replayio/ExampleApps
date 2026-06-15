@@ -5,6 +5,7 @@ type FeedSort = "top" | "new"
 
 interface UIState {
   feed: FeedId
+  previousFeed: FeedId
   selectedStoryId: string | null
   newPostOpen: boolean
   sidebarCollapsed: boolean
@@ -12,6 +13,7 @@ interface UIState {
   feedSort: FeedSort
 
   setFeed: (feed: FeedId) => void
+  toggleSearch: () => void
   selectStory: (id: string | null) => void
   setNewPostOpen: (open: boolean) => void
   toggleSidebar: () => void
@@ -29,13 +31,25 @@ function readCollapsed(): boolean {
 
 export const useUIStore = create<UIState>((set) => ({
   feed: "all",
+  previousFeed: "all",
   selectedStoryId: null,
   newPostOpen: false,
   sidebarCollapsed: readCollapsed(),
   searchQuery: "",
   feedSort: "top",
 
-  setFeed: (feed) => set({ feed, selectedStoryId: null }),
+  setFeed: (feed) =>
+    set((state) => ({
+      feed,
+      previousFeed: state.feed === "search" ? state.previousFeed : state.feed,
+      selectedStoryId: null,
+    })),
+  toggleSearch: () =>
+    set((state) =>
+      state.feed === "search"
+        ? { feed: state.previousFeed, selectedStoryId: null }
+        : { feed: "search", previousFeed: state.feed, selectedStoryId: null }
+    ),
   selectStory: (id) => set({ selectedStoryId: id }),
   setNewPostOpen: (open) => set({ newPostOpen: open }),
   toggleSidebar: () =>

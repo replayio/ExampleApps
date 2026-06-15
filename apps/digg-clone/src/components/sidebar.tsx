@@ -1,4 +1,5 @@
 import { Bell, CirclePlus, PanelLeft, Search } from "lucide-react"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { useCommunities } from "@/queries/stories"
 import { useUIStore } from "@/store/ui-store"
@@ -31,6 +32,7 @@ function RailButton({
   return (
     <button
       aria-label={label}
+      title={label}
       onClick={onClick}
       className={cn(
         "flex size-12 items-center justify-center rounded-full bg-[#eef0f4] transition-all hover:scale-[1.03]",
@@ -45,7 +47,7 @@ function RailButton({
 export function Sidebar() {
   const feed = useUIStore((state) => state.feed)
   const setFeed = useUIStore((state) => state.setFeed)
-  const setSearchQuery = useUIStore((state) => state.setSearchQuery)
+  const toggleSearch = useUIStore((state) => state.toggleSearch)
   const setNewPostOpen = useUIStore((state) => state.setNewPostOpen)
   const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed)
   const toggleSidebar = useUIStore((state) => state.toggleSidebar)
@@ -53,7 +55,6 @@ export function Sidebar() {
   const visibleCommunities = communities.slice(0, sidebarCollapsed ? 5 : 10)
 
   const go = (next: FeedId) => {
-    if (next === "search") setSearchQuery("")
     setFeed(next)
   }
 
@@ -76,7 +77,9 @@ export function Sidebar() {
         )}
         <button
           aria-label="Search"
-          onClick={() => go("search")}
+          title="Search"
+          aria-pressed={feed === "search"}
+          onClick={toggleSearch}
           className={cn(
             "flex size-12 items-center justify-center rounded-full bg-[#eef0f4] text-[#5e6070]",
             feed === "search" && "bg-[#17181f] text-white"
@@ -95,6 +98,7 @@ export function Sidebar() {
         ))}
         <button
           aria-label="More communities"
+          title="More communities"
           onClick={() => go("trending")}
           className="flex size-12 items-center justify-center rounded-full bg-[#eef0f4] text-[#5e6070] hover:text-[#17181f]"
         >
@@ -105,6 +109,7 @@ export function Sidebar() {
       <div className="mt-auto flex flex-col items-center gap-4">
         <button
           aria-label="Create post"
+          title="Create post"
           onClick={() => setNewPostOpen(true)}
           className="flex size-12 items-center justify-center rounded-full bg-[#17181f] text-white"
         >
@@ -112,12 +117,15 @@ export function Sidebar() {
         </button>
         <button
           aria-label="Notifications"
-          className="flex size-12 items-center justify-center rounded-full bg-[#eef0f4] text-[#5e6070]"
+          title="Notifications"
+          onClick={() => toast("You're all caught up — no new notifications")}
+          className="flex size-12 items-center justify-center rounded-full bg-[#eef0f4] text-[#5e6070] hover:text-[#17181f]"
         >
           <Bell className="size-5" />
         </button>
         <button
           aria-label="Toggle sidebar"
+          title="Toggle sidebar"
           onClick={toggleSidebar}
           className="flex size-12 items-center justify-center rounded-full bg-[#eef0f4] text-[#5e6070]"
         >

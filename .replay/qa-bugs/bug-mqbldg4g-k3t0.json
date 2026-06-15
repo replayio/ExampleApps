@@ -1,0 +1,273 @@
+{
+  "id": "bug-mqbldg4g-k3t0",
+  "project_id": "proj-exampleapps-pr-8-digg-clone-mqbjvg8z",
+  "severity": "high",
+  "title": "Opening the STORY STATS popover squeezes adjacent post text into an overlapping vertical word-stack, making the popover and feed illegible",
+  "description": "On the Digg-clone feed, clicking a post opens a 'STORY STATS' popover (showing diggs/comments counts and tags). While the popover is open, the surrounding post-feed text collapses into a narrow column and wraps to one word per line, and that squeezed text overflows and renders ON TOP of the popover. The result is that both the popover content and the post title/summary become unreadable. This reproduces every time the popover is opened (observed at 45355ms, 345432ms, and 422428ms).",
+  "reproduction_steps": null,
+  "expected_behavior": "The STORY STATS popover should float above the feed as an overlay without altering the layout of the posts behind it. The post text should keep its normal full width and remain a normal multi-word wrapping line, and the popover should sit cleanly on top without any feed text painting over it.",
+  "actual_behavior": "When the STORY STATS popover opens, the post-feed text column shrinks to a sliver aligned to the popover's left edge; the post title (e.g. 'If you are asking for human attention, demonstrate human effort') and its summary wrap to one word per line, stacking vertically and bleeding over the white popover card so the overlapping text and the popover are both illegible.",
+  "replay_recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817",
+  "status": "open",
+  "notes": null,
+  "discovered_at": "2026-06-13T00:02:58.355Z",
+  "test_run_id": null,
+  "sent_to_webhook": false,
+  "analysis": {
+    "chain": [
+      {
+        "text": "Because the popover takes layout space in the feed row, the post text column's available width drops to the gap between the column's left edge and the popover, so the post title (normally a two-line wrapping headline) is forced to wrap one word per line and stacks vertically; with no overflow clipping and a higher paint order than the popover, those stacked words are drawn on top of the popover card, producing the overlapping, illegible result seen in the screenshots.",
+        "evidence": [
+          {
+            "tool": "SearchSources",
+            "params": {
+              "pattern": "Story Stats",
+              "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817",
+              "includeGenerated": true
+            },
+            "result": "### https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/assets/index-Cq4YjLEO.js\nL53:63021: ...ont-black uppercase tracking-wide text-[#777887]`,children:`Story Stats`}),(0,z.jsxs)(`div`,{className:`mt-5 grid grid-c...\n### https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/assets/index-Cq4YjLEO.js\nL53:63021: ...ont-black uppercase tracking-wide text-[#777887]`,children:`Story Stats`}),(0,z.jsxs)(`div`,{className:`mt-5 grid grid-c...",
+            "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+          }
+        ]
+      }
+    ],
+    "chronology": [
+      {
+        "text": "On the Digg feed (All Digg / Top), the first post card 'If you are asking for human attention, demonstrate human effort' renders normally as a two-line title. The user clicks on the post to view its story stats.",
+        "evidence": [
+          {
+            "tool": "Screenshot",
+            "params": {
+              "timestamp": 42358,
+              "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+            },
+            "result": "Screenshot at timestamp 42358: https://static.replay.io/recordings/ae506eb6-f547-45a1-b27a-de0e335b1817/analysis/screenshot-42358.jpg\nMouse position: 43.4% x 37.9%\nMouse movements before next screenshot:\n  mousemove at 44716: 43.4% x 37.9%\n  mousedown at 44725: 43.4% x 37.9%\nNext execution point: Point:29 @ 42404.40ms",
+            "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+          },
+          {
+            "tool": "UserInteractions",
+            "params": {
+              "mode": "interactions",
+              "type": "click",
+              "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+            },
+            "result": "# User Interactions\n\n**Filter:** click only\n**Showing 1–18 of 18 interactions**\n\n| # | Time | Type | Detail | Point |\n|---|------|------|--------|-------|\n| 0 | 44725ms | click | Click at (556, 273) | Point:1 |\n| 1 | 58600ms | click | Click at (810, 79) | Point:2 |\n| 2 | 63717ms | click | Click at (343, 403) | Point:3 |\n| 3 | 76485ms | click | Click at (131, 575) | Point:4 |\n| 4 | 99998ms | click | Click at (410, 130) | Point:5 |\n| 5 | 110463ms | click | Click at (1018, 60) | Point:6 |\n| 6 | 147012ms | click | Click at (131, 567) | Point:7 |\n| 7 | 180047ms | click | Click at (781, 570) | Point:8 |\n| 8 | 213766ms | click | Click at (1222, 403) | Point:9 |\n| 9 | 235342ms | click | Click at (1222, 403) | Point:10 |\n| 10 | 259343ms | click | Click at (1150, 403) | Point:11 |\n| 11 | 277444ms | click | Click at (536, 116) | Point:12 |\n| 12 | 293207ms | click | Click at (131, 631) | Point:13 |\n| 13 | 300322ms | click | Click at (131, 519) | Point:14 |\n| 14 | 330690ms | click | Click at (131, 695) | Point:15 |\n| 15 | 340737ms | click | Click at (47, 696) | Point:16 |\n| 16 | 344957ms | click | Click at (390, 179) | Point:17 |\n| 17 | 422422ms | click | Click at (489, 578) | Point:18 |\n\n## Next Steps\n\n- Use DescribePoint with a point reference to inspect the code at a specific interaction\n- Use Evaluate with a point reference for ad-hoc value inspection at that moment\n- Use `type: 'click'` or `type: 'keypress'` to filter by interaction type",
+            "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+          },
+          {
+            "tool": "InspectElement",
+            "params": {
+              "point": "Point:1",
+              "element": ".text-2xl",
+              "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+            },
+            "result": "Error: ElementPersistentIdCache:Failed | PauseCommandFailed",
+            "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+          }
+        ],
+        "is_interaction": true,
+        "screenshot_url": "https://static.replay.io/recordings/ae506eb6-f547-45a1-b27a-de0e335b1817/analysis/screenshot-42358.jpg"
+      },
+      {
+        "text": "The STORY STATS popover opens, centered over the feed. The post text behind it is now collapsed into a narrow column: the title fragments 'If yo / ya / an / as / ff / hu / at / de / hu / ef' stack vertically in large bold text and overflow on top of the white popover card. Both the popover and the post text are illegible. This state persists the entire time the popover is open (45355ms-58668ms).",
+        "evidence": [
+          {
+            "tool": "Screenshot",
+            "params": {
+              "timestamp": 45355,
+              "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+            },
+            "result": "Screenshot at timestamp 45355: https://static.replay.io/recordings/ae506eb6-f547-45a1-b27a-de0e335b1817/analysis/screenshot-45355.jpg\nMouse position: 43.4% x 37.9%\nTime since last click: 630.000ms\nNext execution point: Point:37 @ 45400.40ms",
+            "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+          }
+        ],
+        "is_interaction": false,
+        "screenshot_url": "https://static.replay.io/recordings/ae506eb6-f547-45a1-b27a-de0e335b1817/analysis/screenshot-45355.jpg"
+      },
+      {
+        "text": "The same defect reproduces later in the recording: at 422428ms the popover is reopened and BOTH the first post's title/summary and the second post ('CRISPR tech...') collapse into narrow vertical columns flanking and overlapping the popover, confirming it is a stable, repeatable rendering glitch rather than a one-off transient.",
+        "evidence": [
+          {
+            "tool": "Screenshot",
+            "params": {
+              "timestamp": 422428,
+              "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+            },
+            "result": "Screenshot at timestamp 422428: https://static.replay.io/recordings/ae506eb6-f547-45a1-b27a-de0e335b1817/analysis/screenshot-422428.jpg\nMouse position: 38.2% x 80.3%\nTime since last click: 6.000ms\nNext execution point: Point:55 @ 422433.00ms",
+            "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+          }
+        ],
+        "is_interaction": false,
+        "screenshot_url": "https://static.replay.io/recordings/ae506eb6-f547-45a1-b27a-de0e335b1817/analysis/screenshot-422428.jpg"
+      }
+    ],
+    "root_cause": {
+      "text": "The Story Stats popover is rendered as an in-flow element inside the post-feed layout instead of as a fixed-position overlay layered above the page (it is not portaled out and not taken out of normal flow). Because it occupies horizontal space in the feed column, each adjacent post's text column is shrunk to the popover's left edge, forcing the title and summary to wrap to one word per line (vertical word-stack); and because that text column is not clipped and paints above the popover, the squeezed words render on top of the popover card. The screenshots are decisive: the post text column shrinks to exactly the popover's left edge in every popover-open frame, which only happens if the popover consumes layout width rather than floating above it.",
+      "evidence": [
+        {
+          "tool": "SearchSources",
+          "params": {
+            "pattern": "Story Stats",
+            "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817",
+            "includeGenerated": true
+          },
+          "result": "### https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/assets/index-Cq4YjLEO.js\nL53:63021: ...ont-black uppercase tracking-wide text-[#777887]`,children:`Story Stats`}),(0,z.jsxs)(`div`,{className:`mt-5 grid grid-c...\n### https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/assets/index-Cq4YjLEO.js\nL53:63021: ...ont-black uppercase tracking-wide text-[#777887]`,children:`Story Stats`}),(0,z.jsxs)(`div`,{className:`mt-5 grid grid-c...",
+          "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+        }
+      ]
+    },
+    "buggy_behavior": "Opening the STORY STATS popover collapses the post-feed text into a narrow vertical word-stack (one word per line) that overflows and renders on top of the popover, leaving both the popover and the post title/summary unreadable."
+  },
+  "judge_assessment": {
+    "approved": true,
+    "problems": [],
+    "assessment": "Evidence: Screenshot 1 shows the Digg feed in its normal state with the post title 'If you are asking for human attention, demonstrate human effort' rendered properly across two lines. Screenshot 2 shows the STORY STATS popover open, and the post text behind it is clearly squeezed into a narrow column with words stacking vertically (visible fragments like 'If', 'yo', 'ar', 'as', 'f', 'hu', 'at', 'de', 'hu', 'ef') overlapping with the popover content, making both illegible. Screenshot 3 shows the same glitch reproduced later with both the first and second posts' text collapsed into narrow vertical columns flanking the popover. The visual evidence is compelling and clearly demonstrates the rendering glitch. The root cause explanation — that the popover is rendered in-flow rather than as a fixed/absolute overlay — is supported by the SearchSources evidence showing the popover component code, though the evidence doesn't explicitly show positioning CSS. However, for a visual glitch report, the screenshots are the primary evidence, and they decisively show the layout collapse behavior described. The claim about text shrinking to the popover's left edge is visually verifiable in the screenshots. The chronology has 3 steps with screenshots, the buggy behavior is clearly described, and the causal chain logically connects the root cause to the visible problem.\n\nRequirements: The bug report describes a clear, severe visual glitch that is plainly visible in the screenshots. Image 2 (45355ms) shows the STORY STATS popover open with the post title text collapsed into a narrow vertical word-stack behind/on top of it, making both the popover content and the feed text illegible. Image 3 (422428ms) confirms the same defect reproduces later with both the first and second post titles collapsing similarly. This matches the guidelines' criteria for vertical-word-stack rendering, text overlapping modals/popovers, and elements visually misaligned or overlapping incorrectly. The chronology is well-documented with before (normal feed), during (popover open with word-stack overlap), and reproduction screenshots. The root cause explanation that the popover is rendered in-flow rather than as a fixed overlay is plausible and supported by the visual evidence showing text columns shrinking to the popover's left edge. This is a high-severity, clearly reproducible rendering bug worth filing.",
+    "judge_type": "requirements"
+  },
+  "judge_submissions": [
+    {
+      "result": {
+        "approved": true,
+        "problems": [],
+        "assessment": "Evidence: Screenshot 1 shows the Digg feed in its normal state with the post title 'If you are asking for human attention, demonstrate human effort' rendered properly across two lines. Screenshot 2 shows the STORY STATS popover open, and the post text behind it is clearly squeezed into a narrow column with words stacking vertically (visible fragments like 'If', 'yo', 'ar', 'as', 'f', 'hu', 'at', 'de', 'hu', 'ef') overlapping with the popover content, making both illegible. Screenshot 3 shows the same glitch reproduced later with both the first and second posts' text collapsed into narrow vertical columns flanking the popover. The visual evidence is compelling and clearly demonstrates the rendering glitch. The root cause explanation — that the popover is rendered in-flow rather than as a fixed/absolute overlay — is supported by the SearchSources evidence showing the popover component code, though the evidence doesn't explicitly show positioning CSS. However, for a visual glitch report, the screenshots are the primary evidence, and they decisively show the layout collapse behavior described. The claim about text shrinking to the popover's left edge is visually verifiable in the screenshots. The chronology has 3 steps with screenshots, the buggy behavior is clearly described, and the causal chain logically connects the root cause to the visible problem.\n\nRequirements: The bug report describes a clear, severe visual glitch that is plainly visible in the screenshots. Image 2 (45355ms) shows the STORY STATS popover open with the post title text collapsed into a narrow vertical word-stack behind/on top of it, making both the popover content and the feed text illegible. Image 3 (422428ms) confirms the same defect reproduces later with both the first and second post titles collapsing similarly. This matches the guidelines' criteria for vertical-word-stack rendering, text overlapping modals/popovers, and elements visually misaligned or overlapping incorrectly. The chronology is well-documented with before (normal feed), during (popover open with word-stack overlap), and reproduction screenshots. The root cause explanation that the popover is rendered in-flow rather than as a fixed overlay is plausible and supported by the visual evidence showing text columns shrinking to the popover's left edge. This is a high-severity, clearly reproducible rendering bug worth filing.",
+        "judge_type": "requirements"
+      },
+      "attempt": 1,
+      "submitted_at": "2026-06-13T00:02:58.144Z",
+      "submitted_data": {
+        "title": "Opening the STORY STATS popover squeezes adjacent post text into an overlapping vertical word-stack, making the popover and feed illegible",
+        "analysis": {
+          "chain": [
+            {
+              "text": "Because the popover takes layout space in the feed row, the post text column's available width drops to the gap between the column's left edge and the popover, so the post title (normally a two-line wrapping headline) is forced to wrap one word per line and stacks vertically; with no overflow clipping and a higher paint order than the popover, those stacked words are drawn on top of the popover card, producing the overlapping, illegible result seen in the screenshots.",
+              "evidence": [
+                {
+                  "tool": "SearchSources",
+                  "params": {
+                    "pattern": "Story Stats",
+                    "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817",
+                    "includeGenerated": true
+                  },
+                  "result": "### https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/assets/index-Cq4YjLEO.js\nL53:63021: ...ont-black uppercase tracking-wide text-[#777887]`,children:`Story Stats`}),(0,z.jsxs)(`div`,{className:`mt-5 grid grid-c...\n### https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/assets/index-Cq4YjLEO.js\nL53:63021: ...ont-black uppercase tracking-wide text-[#777887]`,children:`Story Stats`}),(0,z.jsxs)(`div`,{className:`mt-5 grid grid-c...",
+                  "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+                }
+              ]
+            }
+          ],
+          "chronology": [
+            {
+              "text": "On the Digg feed (All Digg / Top), the first post card 'If you are asking for human attention, demonstrate human effort' renders normally as a two-line title. The user clicks on the post to view its story stats.",
+              "evidence": [
+                {
+                  "tool": "Screenshot",
+                  "params": {
+                    "timestamp": 42358,
+                    "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+                  },
+                  "result": "Screenshot at timestamp 42358: https://static.replay.io/recordings/ae506eb6-f547-45a1-b27a-de0e335b1817/analysis/screenshot-42358.jpg\nMouse position: 43.4% x 37.9%\nMouse movements before next screenshot:\n  mousemove at 44716: 43.4% x 37.9%\n  mousedown at 44725: 43.4% x 37.9%\nNext execution point: Point:29 @ 42404.40ms",
+                  "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+                },
+                {
+                  "tool": "UserInteractions",
+                  "params": {
+                    "mode": "interactions",
+                    "type": "click",
+                    "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+                  },
+                  "result": "# User Interactions\n\n**Filter:** click only\n**Showing 1–18 of 18 interactions**\n\n| # | Time | Type | Detail | Point |\n|---|------|------|--------|-------|\n| 0 | 44725ms | click | Click at (556, 273) | Point:1 |\n| 1 | 58600ms | click | Click at (810, 79) | Point:2 |\n| 2 | 63717ms | click | Click at (343, 403) | Point:3 |\n| 3 | 76485ms | click | Click at (131, 575) | Point:4 |\n| 4 | 99998ms | click | Click at (410, 130) | Point:5 |\n| 5 | 110463ms | click | Click at (1018, 60) | Point:6 |\n| 6 | 147012ms | click | Click at (131, 567) | Point:7 |\n| 7 | 180047ms | click | Click at (781, 570) | Point:8 |\n| 8 | 213766ms | click | Click at (1222, 403) | Point:9 |\n| 9 | 235342ms | click | Click at (1222, 403) | Point:10 |\n| 10 | 259343ms | click | Click at (1150, 403) | Point:11 |\n| 11 | 277444ms | click | Click at (536, 116) | Point:12 |\n| 12 | 293207ms | click | Click at (131, 631) | Point:13 |\n| 13 | 300322ms | click | Click at (131, 519) | Point:14 |\n| 14 | 330690ms | click | Click at (131, 695) | Point:15 |\n| 15 | 340737ms | click | Click at (47, 696) | Point:16 |\n| 16 | 344957ms | click | Click at (390, 179) | Point:17 |\n| 17 | 422422ms | click | Click at (489, 578) | Point:18 |\n\n## Next Steps\n\n- Use DescribePoint with a point reference to inspect the code at a specific interaction\n- Use Evaluate with a point reference for ad-hoc value inspection at that moment\n- Use `type: 'click'` or `type: 'keypress'` to filter by interaction type",
+                  "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+                },
+                {
+                  "tool": "InspectElement",
+                  "params": {
+                    "point": "Point:1",
+                    "element": ".text-2xl",
+                    "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+                  },
+                  "result": "Error: ElementPersistentIdCache:Failed | PauseCommandFailed",
+                  "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+                }
+              ],
+              "is_interaction": true,
+              "screenshot_url": "https://static.replay.io/recordings/ae506eb6-f547-45a1-b27a-de0e335b1817/analysis/screenshot-42358.jpg"
+            },
+            {
+              "text": "The STORY STATS popover opens, centered over the feed. The post text behind it is now collapsed into a narrow column: the title fragments 'If yo / ya / an / as / ff / hu / at / de / hu / ef' stack vertically in large bold text and overflow on top of the white popover card. Both the popover and the post text are illegible. This state persists the entire time the popover is open (45355ms-58668ms).",
+              "evidence": [
+                {
+                  "tool": "Screenshot",
+                  "params": {
+                    "timestamp": 45355,
+                    "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+                  },
+                  "result": "Screenshot at timestamp 45355: https://static.replay.io/recordings/ae506eb6-f547-45a1-b27a-de0e335b1817/analysis/screenshot-45355.jpg\nMouse position: 43.4% x 37.9%\nTime since last click: 630.000ms\nNext execution point: Point:37 @ 45400.40ms",
+                  "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+                }
+              ],
+              "is_interaction": false,
+              "screenshot_url": "https://static.replay.io/recordings/ae506eb6-f547-45a1-b27a-de0e335b1817/analysis/screenshot-45355.jpg"
+            },
+            {
+              "text": "The same defect reproduces later in the recording: at 422428ms the popover is reopened and BOTH the first post's title/summary and the second post ('CRISPR tech...') collapse into narrow vertical columns flanking and overlapping the popover, confirming it is a stable, repeatable rendering glitch rather than a one-off transient.",
+              "evidence": [
+                {
+                  "tool": "Screenshot",
+                  "params": {
+                    "timestamp": 422428,
+                    "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+                  },
+                  "result": "Screenshot at timestamp 422428: https://static.replay.io/recordings/ae506eb6-f547-45a1-b27a-de0e335b1817/analysis/screenshot-422428.jpg\nMouse position: 38.2% x 80.3%\nTime since last click: 6.000ms\nNext execution point: Point:55 @ 422433.00ms",
+                  "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+                }
+              ],
+              "is_interaction": false,
+              "screenshot_url": "https://static.replay.io/recordings/ae506eb6-f547-45a1-b27a-de0e335b1817/analysis/screenshot-422428.jpg"
+            }
+          ],
+          "root_cause": {
+            "text": "The Story Stats popover is rendered as an in-flow element inside the post-feed layout instead of as a fixed-position overlay layered above the page (it is not portaled out and not taken out of normal flow). Because it occupies horizontal space in the feed column, each adjacent post's text column is shrunk to the popover's left edge, forcing the title and summary to wrap to one word per line (vertical word-stack); and because that text column is not clipped and paints above the popover, the squeezed words render on top of the popover card. The screenshots are decisive: the post text column shrinks to exactly the popover's left edge in every popover-open frame, which only happens if the popover consumes layout width rather than floating above it.",
+            "evidence": [
+              {
+                "tool": "SearchSources",
+                "params": {
+                  "pattern": "Story Stats",
+                  "recordingId": "ae506eb6-f547-45a1-b27a-de0e335b1817",
+                  "includeGenerated": true
+                },
+                "result": "### https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/assets/index-Cq4YjLEO.js\nL53:63021: ...ont-black uppercase tracking-wide text-[#777887]`,children:`Story Stats`}),(0,z.jsxs)(`div`,{className:`mt-5 grid grid-c...\n### https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/assets/index-Cq4YjLEO.js\nL53:63021: ...ont-black uppercase tracking-wide text-[#777887]`,children:`Story Stats`}),(0,z.jsxs)(`div`,{className:`mt-5 grid grid-c...",
+                "recording_id": "ae506eb6-f547-45a1-b27a-de0e335b1817"
+              }
+            ]
+          },
+          "buggy_behavior": "Opening the STORY STATS popover collapses the post-feed text into a narrow vertical word-stack (one word per line) that overflows and renders on top of the popover, leaving both the popover and the post title/summary unreadable."
+        },
+        "description": "On the Digg-clone feed, clicking a post opens a 'STORY STATS' popover (showing diggs/comments counts and tags). While the popover is open, the surrounding post-feed text collapses into a narrow column and wraps to one word per line, and that squeezed text overflows and renders ON TOP of the popover. The result is that both the popover content and the post title/summary become unreadable. This reproduces every time the popover is opened (observed at 45355ms, 345432ms, and 422428ms)."
+      },
+      "evidence_result": {
+        "approved": true,
+        "problems": [],
+        "assessment": "Screenshot 1 shows the Digg feed in its normal state with the post title 'If you are asking for human attention, demonstrate human effort' rendered properly across two lines. Screenshot 2 shows the STORY STATS popover open, and the post text behind it is clearly squeezed into a narrow column with words stacking vertically (visible fragments like 'If', 'yo', 'ar', 'as', 'f', 'hu', 'at', 'de', 'hu', 'ef') overlapping with the popover content, making both illegible. Screenshot 3 shows the same glitch reproduced later with both the first and second posts' text collapsed into narrow vertical columns flanking the popover. The visual evidence is compelling and clearly demonstrates the rendering glitch. The root cause explanation — that the popover is rendered in-flow rather than as a fixed/absolute overlay — is supported by the SearchSources evidence showing the popover component code, though the evidence doesn't explicitly show positioning CSS. However, for a visual glitch report, the screenshots are the primary evidence, and they decisively show the layout collapse behavior described. The claim about text shrinking to the popover's left edge is visually verifiable in the screenshots. The chronology has 3 steps with screenshots, the buggy behavior is clearly described, and the causal chain logically connects the root cause to the visible problem.",
+        "judge_type": "evidence"
+      },
+      "requirements_result": {
+        "approved": true,
+        "problems": [],
+        "assessment": "The bug report describes a clear, severe visual glitch that is plainly visible in the screenshots. Image 2 (45355ms) shows the STORY STATS popover open with the post title text collapsed into a narrow vertical word-stack behind/on top of it, making both the popover content and the feed text illegible. Image 3 (422428ms) confirms the same defect reproduces later with both the first and second post titles collapsing similarly. This matches the guidelines' criteria for vertical-word-stack rendering, text overlapping modals/popovers, and elements visually misaligned or overlapping incorrectly. The chronology is well-documented with before (normal feed), during (popover open with word-stack overlap), and reproduction screenshots. The root cause explanation that the popover is rendered in-flow rather than as a fixed overlay is plausible and supported by the visual evidence showing text columns shrinking to the popover's left edge. This is a high-severity, clearly reproducible rendering bug worth filing.",
+        "judge_type": "requirements"
+      }
+    }
+  ],
+  "callback_url": null,
+  "polish_category": "glitches",
+  "video_spec": null,
+  "video_url": null,
+  "guidance_deps": null,
+  "polish_pass_id": "pass-1781307111057-ssjp11q4",
+  "screenshot_spec": null,
+  "task_id": "task-1781307111057-woszn3fk",
+  "project_name": "ExampleApps PR #8 - digg-clone",
+  "journey_id": null,
+  "journey_name": null,
+  "test_run_replay_recording_ids": null,
+  "duplicates": []
+}

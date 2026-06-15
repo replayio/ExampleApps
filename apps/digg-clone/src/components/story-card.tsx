@@ -13,6 +13,12 @@ import { timeAgo } from "@/lib/format"
 import type { Story, VoteState } from "@/lib/types"
 import { useToggleSaveStory, useVoteStory } from "@/queries/stories"
 import { useUIStore } from "@/store/ui-store"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 function voteFor(current: VoteState, next: VoteState) {
   return current === next ? 0 : next
@@ -153,12 +159,29 @@ export function StoryCard({ story }: { story: Story }) {
           >
             <Share2 className="size-5" />
           </button>
-          <button
-            aria-label="More"
-            className="transition-colors hover:text-[#17181f]"
-          >
-            <MoreHorizontal className="size-5" />
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              aria-label="More"
+              title="More"
+              className="transition-colors hover:text-[#17181f]"
+            >
+              <MoreHorizontal className="size-5" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => selectStory(story.id)}>
+                View story
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={copyLink}>Copy link</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => save.mutate(story)}>
+                {story.saved ? "Remove from saved" : "Save story"}
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <a href={story.url} target="_blank" rel="noreferrer">
+                  Open source
+                </a>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </article>

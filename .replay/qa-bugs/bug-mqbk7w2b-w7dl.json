@@ -1,0 +1,201 @@
+{
+  "id": "bug-mqbk7w2b-w7dl",
+  "project_id": "proj-exampleapps-pr-8-digg-clone-mqbjvg8z",
+  "severity": "medium",
+  "title": "Inactive 'My Feed' tab in the feed-filter toggle is low contrast (2.91:1) and hard to read",
+  "description": "In the header feed-filter segmented control (the rounded pill containing \"My Feed\" and \"All Digg\"), the inactive \"My Feed\" tab label is rendered in light gray rgb(138,139,150) on the control's light-gray track rgb(236,238,243). That is a contrast ratio of 2.91:1, below the WCAG AA minimum of 4.5:1. The label is bold 17px, which does not qualify for the 3:1 large-text exception (and 2.91:1 fails that threshold too), so the inactive tab text is difficult to read.",
+  "reproduction_steps": null,
+  "expected_behavior": "The inactive tab label should meet at least the 4.5:1 WCAG AA contrast minimum against the control track, e.g. by darkening the inactive label color so it stays clearly legible.",
+  "actual_behavior": "The \"My Feed\" tab label is faint light-gray text on a light-gray pill, measuring 2.91:1 contrast — hard to read in every captured frame.",
+  "replay_recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7",
+  "status": "open",
+  "notes": null,
+  "discovered_at": "2026-06-12T23:30:39.421Z",
+  "test_run_id": "run-mqbjvgjo-hqml",
+  "sent_to_webhook": false,
+  "analysis": {
+    "chain": [
+      {
+        "text": "Because the inactive label color #8a8b96 is only marginally darker than the control's #eceef3 track, the rendered contrast (2.91:1) falls below the readable threshold, so the 'My Feed' tab text appears faint in the header throughout the recording.",
+        "evidence": [
+          {
+            "tool": "Evaluate",
+            "params": {
+              "point": "Point:2",
+              "expression": "JSON.stringify(Array.from(document.querySelectorAll('button')).filter(e=>e.textContent.trim()==='My Feed').map(e=>getComputedStyle(e).color))",
+              "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+            },
+            "result": "Error: Expression evaluation in frame scope is only available at points during code execution. Use scope: \"global\" to evaluate in global scope instead.",
+            "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+          }
+        ]
+      }
+    ],
+    "chronology": [
+      {
+        "text": "The Digg feed page is loaded. The header shows a segmented feed-filter control with two tabs: the inactive 'My Feed' tab and the active 'All Digg' tab (in a white pill).",
+        "evidence": [
+          {
+            "tool": "Screenshot",
+            "params": {
+              "timestamp": 13785,
+              "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+            },
+            "result": "Screenshot at timestamp 13785: https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-13785.jpg\nNext execution point: Point:5 @ 13814.50ms",
+            "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+          }
+        ],
+        "is_interaction": false,
+        "screenshot_url": "https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-13785.jpg"
+      },
+      {
+        "text": "The 'My Feed' label (top-left of the toggle, beside 'All Digg') is faint light-gray text on the light-gray pill track and is noticeably harder to read than the active 'All Digg' label and the surrounding dark UI text.",
+        "evidence": [
+          {
+            "tool": "Screenshot",
+            "params": {
+              "timestamp": 1575,
+              "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+            },
+            "result": "Screenshot at timestamp 1575: https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-1575.jpg\nNext execution point: Point:2 @ 1688.00ms",
+            "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+          }
+        ],
+        "is_interaction": false,
+        "screenshot_url": "https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-1575.jpg"
+      }
+    ],
+    "root_cause": {
+      "text": "The 'My Feed' button label is styled color:rgb(138,139,150) (#8a8b96) with a transparent background, sitting inside the segmented control whose background is rgb(236,238,243) (bg-[#eceef3]). Evaluating the live DOM confirms these computed values. Foreground #8a8b96 on background #eceef3 yields a contrast ratio of 2.91:1, below the WCAG AA 4.5:1 minimum for the 17px label.",
+      "evidence": [
+        {
+          "tool": "Evaluate",
+          "params": {
+            "point": "Point:5",
+            "expression": "JSON.stringify(Array.from(document.querySelectorAll('button')).filter(e=>e.textContent.trim()==='My Feed'&&e.children.length===0).map(e=>{var c=getComputedStyle(e);return {color:c.color,bg:c.backgroundColor,fontSize:c.fontSize,fontWeight:c.fontWeight,parentBg:getComputedStyle(e.parentElement).backgroundColor}}))",
+            "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+          },
+          "result": "\"[{\\\"color\\\":\\\"rgb(138, 139, 150)\\\",\\\"bg\\\":\\\"rgba(0, 0, 0, 0)\\\",\\\"fontSize\\\":\\\"17px\\\",\\\"fontWeight\\\":\\\"900\\\",\\\"parentBg\\\":\\\"rgb(236, 238, 243)\\\"}]\"",
+          "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+        }
+      ]
+    },
+    "buggy_behavior": "The inactive 'My Feed' tab text in the header feed-filter toggle is light gray on a light-gray pill, so the control label is too faint to read comfortably."
+  },
+  "judge_assessment": {
+    "approved": true,
+    "problems": [],
+    "assessment": "Evidence: Screenshot 1 (Image 1) shows the Digg feed page with the header segmented control visible. The 'My Feed' tab appears in light gray text next to the active 'All Digg' tab in a white pill, on a light gray track background. Screenshot 2 (Image 2) shows a loading state of the same page, with the same header control visible showing the faint 'My Feed' label. Both screenshots clearly show the segmented control in the header area where the low-contrast text is claimed to exist. The root cause evidence from the Evaluate tool returns concrete computed style values: color rgb(138, 139, 150), background rgba(0, 0, 0, 0) (transparent), parent background rgb(236, 238, 243), fontSize 17px, fontWeight 900 — all matching the claims in the root_cause.text exactly. The contrast ratio of 2.91:1 between #8a8b96 and #eceef3 is mathematically verifiable from these color values. The report identifies the exact UI component (the 'My Feed' button in the feed-filter segmented control in the header), provides precise color values confirmed by DOM evaluation, and the screenshots show the element in context. The chain step's evidence item returned an error, but the root cause evidence successfully confirms the styling values. All factual claims (rgb values, font size, font weight, contrast ratio) are either directly present in or derivable from the evidence results.\n\nRequirements: The bug report describes a low-contrast text issue with the inactive 'My Feed' tab label in the header feed-filter toggle. Looking at the screenshots, Image 1 shows the Digg feed page with the segmented control visible in the header - 'My Feed' appears in a lighter gray while 'All Digg' is in a white active pill with dark text. The 'My Feed' text is visibly fainter than the active tab and surrounding UI text. Image 2 shows the same control in a loading state, confirming the persistent nature of the issue. The root cause evidence is strong: the DOM evaluation successfully returned the computed color rgb(138,139,150) on a transparent background with parent background rgb(236,238,243), confirming the 2.91:1 contrast ratio claim. The font size is 17px with weight 900, which does not qualify for the large-text exception (requires 18px+ regular or 14px+ bold at standard weight thresholds - though 17px bold is borderline, 2.91:1 still fails even the 3:1 large-text threshold). The screenshots clearly show the faint text in the viewport, the DOM measurements confirm the color values, and the bug is well-documented with precise location context identifying the specific UI component.",
+    "judge_type": "requirements"
+  },
+  "judge_submissions": [
+    {
+      "result": {
+        "approved": true,
+        "problems": [],
+        "assessment": "Evidence: Screenshot 1 (Image 1) shows the Digg feed page with the header segmented control visible. The 'My Feed' tab appears in light gray text next to the active 'All Digg' tab in a white pill, on a light gray track background. Screenshot 2 (Image 2) shows a loading state of the same page, with the same header control visible showing the faint 'My Feed' label. Both screenshots clearly show the segmented control in the header area where the low-contrast text is claimed to exist. The root cause evidence from the Evaluate tool returns concrete computed style values: color rgb(138, 139, 150), background rgba(0, 0, 0, 0) (transparent), parent background rgb(236, 238, 243), fontSize 17px, fontWeight 900 — all matching the claims in the root_cause.text exactly. The contrast ratio of 2.91:1 between #8a8b96 and #eceef3 is mathematically verifiable from these color values. The report identifies the exact UI component (the 'My Feed' button in the feed-filter segmented control in the header), provides precise color values confirmed by DOM evaluation, and the screenshots show the element in context. The chain step's evidence item returned an error, but the root cause evidence successfully confirms the styling values. All factual claims (rgb values, font size, font weight, contrast ratio) are either directly present in or derivable from the evidence results.\n\nRequirements: The bug report describes a low-contrast text issue with the inactive 'My Feed' tab label in the header feed-filter toggle. Looking at the screenshots, Image 1 shows the Digg feed page with the segmented control visible in the header - 'My Feed' appears in a lighter gray while 'All Digg' is in a white active pill with dark text. The 'My Feed' text is visibly fainter than the active tab and surrounding UI text. Image 2 shows the same control in a loading state, confirming the persistent nature of the issue. The root cause evidence is strong: the DOM evaluation successfully returned the computed color rgb(138,139,150) on a transparent background with parent background rgb(236,238,243), confirming the 2.91:1 contrast ratio claim. The font size is 17px with weight 900, which does not qualify for the large-text exception (requires 18px+ regular or 14px+ bold at standard weight thresholds - though 17px bold is borderline, 2.91:1 still fails even the 3:1 large-text threshold). The screenshots clearly show the faint text in the viewport, the DOM measurements confirm the color values, and the bug is well-documented with precise location context identifying the specific UI component.",
+        "judge_type": "requirements"
+      },
+      "attempt": 1,
+      "submitted_at": "2026-06-12T23:30:39.250Z",
+      "submitted_data": {
+        "title": "Inactive 'My Feed' tab in the feed-filter toggle is low contrast (2.91:1) and hard to read",
+        "analysis": {
+          "chain": [
+            {
+              "text": "Because the inactive label color #8a8b96 is only marginally darker than the control's #eceef3 track, the rendered contrast (2.91:1) falls below the readable threshold, so the 'My Feed' tab text appears faint in the header throughout the recording.",
+              "evidence": [
+                {
+                  "tool": "Evaluate",
+                  "params": {
+                    "point": "Point:2",
+                    "expression": "JSON.stringify(Array.from(document.querySelectorAll('button')).filter(e=>e.textContent.trim()==='My Feed').map(e=>getComputedStyle(e).color))",
+                    "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+                  },
+                  "result": "Error: Expression evaluation in frame scope is only available at points during code execution. Use scope: \"global\" to evaluate in global scope instead.",
+                  "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+                }
+              ]
+            }
+          ],
+          "chronology": [
+            {
+              "text": "The Digg feed page is loaded. The header shows a segmented feed-filter control with two tabs: the inactive 'My Feed' tab and the active 'All Digg' tab (in a white pill).",
+              "evidence": [
+                {
+                  "tool": "Screenshot",
+                  "params": {
+                    "timestamp": 13785,
+                    "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+                  },
+                  "result": "Screenshot at timestamp 13785: https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-13785.jpg\nNext execution point: Point:5 @ 13814.50ms",
+                  "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+                }
+              ],
+              "is_interaction": false,
+              "screenshot_url": "https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-13785.jpg"
+            },
+            {
+              "text": "The 'My Feed' label (top-left of the toggle, beside 'All Digg') is faint light-gray text on the light-gray pill track and is noticeably harder to read than the active 'All Digg' label and the surrounding dark UI text.",
+              "evidence": [
+                {
+                  "tool": "Screenshot",
+                  "params": {
+                    "timestamp": 1575,
+                    "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+                  },
+                  "result": "Screenshot at timestamp 1575: https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-1575.jpg\nNext execution point: Point:2 @ 1688.00ms",
+                  "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+                }
+              ],
+              "is_interaction": false,
+              "screenshot_url": "https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-1575.jpg"
+            }
+          ],
+          "root_cause": {
+            "text": "The 'My Feed' button label is styled color:rgb(138,139,150) (#8a8b96) with a transparent background, sitting inside the segmented control whose background is rgb(236,238,243) (bg-[#eceef3]). Evaluating the live DOM confirms these computed values. Foreground #8a8b96 on background #eceef3 yields a contrast ratio of 2.91:1, below the WCAG AA 4.5:1 minimum for the 17px label.",
+            "evidence": [
+              {
+                "tool": "Evaluate",
+                "params": {
+                  "point": "Point:5",
+                  "expression": "JSON.stringify(Array.from(document.querySelectorAll('button')).filter(e=>e.textContent.trim()==='My Feed'&&e.children.length===0).map(e=>{var c=getComputedStyle(e);return {color:c.color,bg:c.backgroundColor,fontSize:c.fontSize,fontWeight:c.fontWeight,parentBg:getComputedStyle(e.parentElement).backgroundColor}}))",
+                  "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+                },
+                "result": "\"[{\\\"color\\\":\\\"rgb(138, 139, 150)\\\",\\\"bg\\\":\\\"rgba(0, 0, 0, 0)\\\",\\\"fontSize\\\":\\\"17px\\\",\\\"fontWeight\\\":\\\"900\\\",\\\"parentBg\\\":\\\"rgb(236, 238, 243)\\\"}]\"",
+                "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+              }
+            ]
+          },
+          "buggy_behavior": "The inactive 'My Feed' tab text in the header feed-filter toggle is light gray on a light-gray pill, so the control label is too faint to read comfortably."
+        },
+        "description": "In the header feed-filter segmented control (the rounded pill containing \"My Feed\" and \"All Digg\"), the inactive \"My Feed\" tab label is rendered in light gray rgb(138,139,150) on the control's light-gray track rgb(236,238,243). That is a contrast ratio of 2.91:1, below the WCAG AA minimum of 4.5:1. The label is bold 17px, which does not qualify for the 3:1 large-text exception (and 2.91:1 fails that threshold too), so the inactive tab text is difficult to read."
+      },
+      "evidence_result": {
+        "approved": true,
+        "problems": [],
+        "assessment": "Screenshot 1 (Image 1) shows the Digg feed page with the header segmented control visible. The 'My Feed' tab appears in light gray text next to the active 'All Digg' tab in a white pill, on a light gray track background. Screenshot 2 (Image 2) shows a loading state of the same page, with the same header control visible showing the faint 'My Feed' label. Both screenshots clearly show the segmented control in the header area where the low-contrast text is claimed to exist. The root cause evidence from the Evaluate tool returns concrete computed style values: color rgb(138, 139, 150), background rgba(0, 0, 0, 0) (transparent), parent background rgb(236, 238, 243), fontSize 17px, fontWeight 900 — all matching the claims in the root_cause.text exactly. The contrast ratio of 2.91:1 between #8a8b96 and #eceef3 is mathematically verifiable from these color values. The report identifies the exact UI component (the 'My Feed' button in the feed-filter segmented control in the header), provides precise color values confirmed by DOM evaluation, and the screenshots show the element in context. The chain step's evidence item returned an error, but the root cause evidence successfully confirms the styling values. All factual claims (rgb values, font size, font weight, contrast ratio) are either directly present in or derivable from the evidence results.",
+        "judge_type": "evidence"
+      },
+      "requirements_result": {
+        "approved": true,
+        "problems": [],
+        "assessment": "The bug report describes a low-contrast text issue with the inactive 'My Feed' tab label in the header feed-filter toggle. Looking at the screenshots, Image 1 shows the Digg feed page with the segmented control visible in the header - 'My Feed' appears in a lighter gray while 'All Digg' is in a white active pill with dark text. The 'My Feed' text is visibly fainter than the active tab and surrounding UI text. Image 2 shows the same control in a loading state, confirming the persistent nature of the issue. The root cause evidence is strong: the DOM evaluation successfully returned the computed color rgb(138,139,150) on a transparent background with parent background rgb(236,238,243), confirming the 2.91:1 contrast ratio claim. The font size is 17px with weight 900, which does not qualify for the large-text exception (requires 18px+ regular or 14px+ bold at standard weight thresholds - though 17px bold is borderline, 2.91:1 still fails even the 3:1 large-text threshold). The screenshots clearly show the faint text in the viewport, the DOM measurements confirm the color values, and the bug is well-documented with precise location context identifying the specific UI component.",
+        "judge_type": "requirements"
+      }
+    }
+  ],
+  "callback_url": null,
+  "polish_category": "glitches",
+  "video_spec": null,
+  "video_url": null,
+  "guidance_deps": null,
+  "polish_pass_id": "pass-1781306565554-1ffov0xm",
+  "screenshot_spec": null,
+  "task_id": "task-1781306565554-kvsjzjei",
+  "project_name": "ExampleApps PR #8 - digg-clone",
+  "journey_id": "journey-mqbjvgc1-desg",
+  "journey_name": "Load the main page",
+  "test_run_replay_recording_ids": null,
+  "duplicates": []
+}

@@ -1,0 +1,630 @@
+{
+  "id": "bug-mqbkx3dn-t6t2",
+  "project_id": "proj-exampleapps-pr-8-digg-clone-mqbjvg8z",
+  "severity": "high",
+  "title": "Saved stories never appear in the 'Saved' feed (saved-feed API returns empty despite save succeeding)",
+  "description": "After clicking 'Save story' on a story card — which fills the bookmark icon and is confirmed by the server returning the story with \"saved\": true — switching the feed selector to the 'Saved' view shows 'No stories found.'. The just-saved story never appears in the Saved feed, so the save-and-view-saved journey cannot be completed.",
+  "reproduction_steps": "1. Open https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app\n2. On the top story card ('If you are asking for human attention, demonstrate human effort'), click the 'Save story' (bookmark) button. The bookmark icon fills, indicating the story is saved.\n3. Click the feed selector (showing 'All Digg') and choose 'Saved'.\n4. Observe the Saved view: it displays 'No stories found.' instead of the saved story.",
+  "expected_behavior": "After saving a story, selecting the 'Saved' view should list that story so the user can find their bookmarked stories.",
+  "actual_behavior": "The 'Saved' view shows 'No stories found.' even though the story was successfully saved (filled bookmark; server PATCH /api/stories/hn-48497609/save returned the story with \"saved\": true). The saved-feed request GET /api/feed?feed=saved returns {\"feed\":\"saved\",\"source\":\"hn\",\"stories\":[]}, an empty list.",
+  "replay_recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1",
+  "status": "open",
+  "notes": null,
+  "discovered_at": "2026-06-12T23:50:15.391Z",
+  "test_run_id": "run-mqbk8dtg-jfqo",
+  "sent_to_webhook": false,
+  "analysis": {
+    "chain": [
+      {
+        "text": "PATCH /api/stories/hn-48497609/save returned 200 with the story object's \"saved\" field set to true, so the application treats the story as saved (the bookmark icon is filled on the card).",
+        "evidence": [
+          {
+            "tool": "NetworkRequest",
+            "params": {
+              "mode": "detail",
+              "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1",
+              "requestIndex": 66
+            },
+            "result": "A PATCH network request with ID 2903.318 was made to https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/api/stories/hn-48497609/save:\n<request_summary>\nThe response had status 200 ().\n</request_summary>\nInitiated at Point:5 @ 33578.00ms\nEvents:\n  request @ 33578ms\n  request-body @ 33578ms\n  response @ 33741ms\n  response-body @ 33741ms\n  request-done @ 33742ms\nRequest headers:\n<requestHeaders>\nsec-ch-ua: \ncontent-type: application/json\nsec-ch-ua-mobile: ?0\nUser-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/108.0.5359.0 Safari/537.36\nsec-ch-ua-platform: \n</requestHeaders>\nResponse headers:\n<responseHeaders>\nx-nf-request-id: 01KTZ36A3Q1EAATWYG95NPRY28\ndate: Fri, 12 Jun 2026 23:38:04 GMT\nstrict-transport-security: max-age=31536000; includeSubDomains; preload\nx-content-type-options: nosniff\nnetlify-vary: query\nserver: Netlify\nage: 0\ncache-status: \"Netlify Durable\"; fwd=bypass, \"Netlify Edge\"; fwd=method\ncontent-type: application/json\ncache-control: no-cache\n</responseHeaders>\n\nThe request body was\n:\n<requestBody>\n{\"story\":{\"id\":\"hn-48497609\",\"title\":\"If you are asking for human attention, demonstrate human effort\",\"summary\":\"A discussion-driven story from Hacker News, submitted by jjfoooo4.\",\"url\":\"https://tombedor.dev/human-attention-and-human-effort/\",\"domain\":\"tombedor.dev\",\"imageUrl\":\"https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=900&q=82\",\"communityId\":\"technology\",\"communityName\":\"technology\",\"communityIcon\":\"https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=120&q=80\",\"publishedAt\":\"2026-06-11T23:01:55Z\",\"diggCount\":1480,\"commentCount\":457,\"userVote\":0,\"saved\":false,\"featured\":true,\"mediaType\":\"article\",\"submittedBy\":\"jjfoooo4\",\"sourceCountry\":\"Hacker News\",\"tags\":[\"technology\",\"hacker-news\"]}}\n</requestBody>\n\nThe response body was\n:\n<responseBody>\n{\"id\":\"hn-48497609\",\"title\":\"If you are asking for human attention, demonstrate human effort\",\"summary\":\"A discussion-driven story from Hacker News, submitted by jjfoooo4.\",\"url\":\"https://tombedor.dev/human-attention-and-human-effort/\",\"domain\":\"tombedor.dev\",\"imageUrl\":\"https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=900&q=82\",\"communityId\":\"technology\",\"communityName\":\"technology\",\"communityIcon\":\"https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=120&q=80\",\"publishedAt\":\"2026-06-11T23:01:55Z\",\"diggCount\":1480,\"commentCount\":457,\"userVote\":0,\"saved\":true,\"featured\":true,\"mediaType\":\"article\",\"submittedBy\":\"jjfoooo4\",\"sourceCountry\":\"Hacker News\",\"tags\":[\"technology\",\"hacker-news\"]}\n</responseBody>\n\n_Previous: `requestIndex=65` | Next: `requestIndex=67`_",
+            "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+          }
+        ]
+      },
+      {
+        "text": "GET /api/feed?feed=saved returned 200 with body {\"feed\":\"saved\",\"source\":\"hn\",\"stories\":[]}, an empty list that does not contain the saved story hn-48497609 — directly contradicting the save response.",
+        "evidence": [
+          {
+            "tool": "NetworkRequest",
+            "params": {
+              "mode": "detail",
+              "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1",
+              "requestIndex": 72
+            },
+            "result": "A GET network request with ID 2903.336 was made to https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/api/feed?feed=saved:\n<request_summary>\nThe response had status 200 ().\n</request_summary>\nEvents:\n  request @ 61781ms\n  response @ 63109ms\n  response-body @ 63109ms\n  request-done @ 63122ms\nRequest headers:\n<requestHeaders>\nsec-ch-ua: \ncontent-type: application/json\nsec-ch-ua-mobile: ?0\nUser-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/108.0.5359.0 Safari/537.36\nsec-ch-ua-platform: \n</requestHeaders>\nResponse headers:\n<responseHeaders>\nx-nf-request-id: 01KTZ375N2QZD82QNNSZ4XGH7T\ndate: Fri, 12 Jun 2026 23:38:33 GMT\ncontent-encoding: br\nx-content-type-options: nosniff\nstrict-transport-security: max-age=31536000; includeSubDomains; preload\nnetlify-vary: query\nserver: Netlify\nage: 0\ncache-status: \"Netlify Durable\"; fwd=bypass, \"Netlify Edge\"; fwd=miss\nvary: Accept-Encoding\ncontent-type: application/json\ncache-control: no-cache\n</responseHeaders>\n\nThe request body was\n EMPTY.\n\nThe response body was\n:\n<responseBody>\n{\"feed\":\"saved\",\"source\":\"hn\",\"stories\":[]}\n</responseBody>\n\n_Previous: `requestIndex=71` | Next: `requestIndex=73`_",
+            "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+          }
+        ]
+      },
+      {
+        "text": "Because the saved-feed response contains zero stories, the StoryList component takes its stories.length === 0 branch (story-list.tsx line 19) and renders 'No stories found.', so the saved story never appears in the Saved view.",
+        "evidence": [
+          {
+            "tool": "SearchSources",
+            "params": {
+              "pattern": "No stories found",
+              "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+            },
+            "result": "### https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/story-list.tsx\n hits | L | code \n------|------|------\n     |    1 | import type { Story } from \"@/lib/types\" \n\n   2 |   21 |       <div className=\"py-20 text-center text-sm font-medium text-[#777887]\"> \n     |  *22 |         No stories found. \n     |   23 |       </div>",
+            "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+          }
+        ]
+      }
+    ],
+    "chronology": [
+      {
+        "text": "On the 'All Digg' feed, the user clicks the 'Save story' (bookmark) button on the top story card 'If you are asking for human attention, demonstrate human effort'. The bookmark icon changes to a filled/solid state (compared to the outline bookmark on the card below), indicating the story is now saved. This button is rendered by the StoryCard component (story-card.tsx line 139).",
+        "evidence": [
+          {
+            "tool": "Screenshot",
+            "params": {
+              "timestamp": 33774,
+              "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+            },
+            "result": "Screenshot at timestamp 33774: https://static.replay.io/recordings/04a21ca2-46b5-431f-ad90-0ecbcff03ef1/analysis/screenshot-33774.jpg\nMouse position: 89.8% x 56.0%\nTime since last click: 200.000ms\nNext execution point: Point:6 @ 34022.96ms",
+            "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+          },
+          {
+            "tool": "UserInteractions",
+            "params": {
+              "mode": "interactions",
+              "type": "click",
+              "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+            },
+            "result": "# User Interactions\n\n**Filter:** click only\n**Showing 1–4 of 4 interactions**\n\n| # | Time | Type | Detail | Point |\n|---|------|------|--------|-------|\n| 0 | 33574ms | click | Click at (1150, 403) | Point:1 |\n| 1 | 61740ms | click | Click at (536, 116) | Point:2 |\n| 2 | 107520ms | click | Click at (536, 48) | Point:3 |\n| 3 | 144287ms | click | Click at (536, 116) | Point:4 |\n\n## Next Steps\n\n- Use DescribePoint with a point reference to inspect the code at a specific interaction\n- Use Evaluate with a point reference for ad-hoc value inspection at that moment\n- Use `type: 'click'` or `type: 'keypress'` to filter by interaction type",
+            "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+          },
+          {
+            "tool": "InspectElement",
+            "params": {
+              "point": "Point:1",
+              "element": "button[aria-label=\"Save story\"]",
+              "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+            },
+            "result": "Element:1 is `<button aria-label=\"Save story\" class=\"transition-colors hover:text-[#17181f]\"></button>`.\nElement:1 is rendered by React component StoryCard at Point:8:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/story-card.tsx line 139 column 10\n1 element(s) obstructing the center point of this element:\n<element ref=\"Element:2\" html=\"&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; class=&quot;lucide lucide-bookmark size-5&quot; aria-hidden=&quot;true&quot;&gt;&lt;/svg&gt;\">\n  Element:2 is rendered by React component StoryCard at Point:9:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/story-card.tsx line 147 column 12\n</element>\n\n\nElement:1 has 20px width and 20px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 0px right 0px bottom 0px left 0px.\n\nDistances to its parent element:\n- Top is aligned with parent boundary\n- Right overflows parent by 72.00px\n- Bottom is aligned with parent boundary\n- Left overflows parent by 36.00px\n\n\n### Parent Element:4\n\nElement:4 is `<div class=\"flex items-center gap-4 text-[#676878]\"></div>`.\nElement:4 is rendered by React component StoryCard at Point:10:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/story-card.tsx line 129 column 8\n\nElement:4 has 128px width and 20px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 0px right 0px bottom 0px left 0px.\n\nDistances to its parent element:\n- Top overflows parent by 3.50px\n- Right is aligned with parent boundary\n- Bottom overflows parent by 3.50px\n- Left overflows parent by 792.00px\n\n\n### Parent Element:5\n\nElement:5 is `<div class=\"mt-7 flex items-center justify-between\"></div>`.\nElement:5 is rendered by React component StoryCard at Point:11:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/story-card.tsx line 86 column 6\n\nElement:5 has 920px width and 27px height.\nMargin: top 28px right 0px bottom 0px left 0px.\nPadding: top 0px right 0px bottom 0px left 0px.\n\nDistances to its parent element:\n- Top overflows parent by 242.00px\n- Right is aligned with parent boundary\n- Bottom overflows parent by 33.00px\n- Left is aligned with parent boundary\n\n\n### Parent Element:6\n\nElement:6 is `<article class=\"group border-b border-[#e8e8ee] py-8\"></article>`.\nElement:6 is rendered by React component StoryCard at Point:11:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/story-card.tsx line 86 column 6\n\nElement:6 has 920px width and 302px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 32px right 0px bottom 32px left 0px.\n\nDistances to its parent element:\n- Top is aligned with parent boundary\n- Right is aligned with parent boundary\n- Bottom overflows parent by 9336.25px\n- Left is aligned with parent boundary\n\n\n### Parent Element:7\n\nElement:7 is `<div class=\"flex flex-col\"></div>`.\nElement:7 is rendered by React component StoryList at Point:12:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/story-list.tsx line 28 column 4\n\nElement:7 has 920px width and 9638.25px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 0px right 0px bottom 0px left 0px.\n\nDistances to its parent element:\n- Top is aligned with parent boundary\n- Right is aligned with parent boundary\n- Bottom is aligned with parent boundary\n- Left is aligned with parent boundary\n\n\n### Parent Element:8\n\nElement:8 is `<div class=\"mx-auto max-w-[980px]\"></div>`.\nElement:8 is rendered by React component MainView at Point:13:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/main-view.tsx line 147 column 10\n\nElement:8 has 920px width and 9638.25px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 0px right 0px bottom 0px left 0px.\n\nDistances to its parent element:\n- Top is aligned with parent boundary\n- Right overflows parent by 48.00px\n- Bottom distance: 9066.25px\n- Left overflows parent by 48.00px\n\n\n",
+            "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+          }
+        ],
+        "is_interaction": true,
+        "screenshot_url": "https://static.replay.io/recordings/04a21ca2-46b5-431f-ad90-0ecbcff03ef1/analysis/screenshot-33774.jpg"
+      },
+      {
+        "text": "The user opens the feed selector (the combobox showing 'All Digg', rendered by MainView at main-view.tsx line 81) and selects the 'Saved' option. The selector label changes to 'Saved' and the app fetches the saved feed.",
+        "evidence": [
+          {
+            "tool": "Screenshot",
+            "params": {
+              "timestamp": 63132,
+              "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+            },
+            "result": "Screenshot at timestamp 63132: https://static.replay.io/recordings/04a21ca2-46b5-431f-ad90-0ecbcff03ef1/analysis/screenshot-63132.jpg\nMouse position: 41.9% x 16.1%\nTime since last click: 1392.000ms\nNext execution point: Point:7 @ 63263.61ms",
+            "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+          },
+          {
+            "tool": "UserInteractions",
+            "params": {
+              "mode": "interactions",
+              "type": "click",
+              "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+            },
+            "result": "# User Interactions\n\n**Filter:** click only\n**Showing 1–4 of 4 interactions**\n\n| # | Time | Type | Detail | Point |\n|---|------|------|--------|-------|\n| 0 | 33574ms | click | Click at (1150, 403) | Point:1 |\n| 1 | 61740ms | click | Click at (536, 116) | Point:2 |\n| 2 | 107520ms | click | Click at (536, 48) | Point:3 |\n| 3 | 144287ms | click | Click at (536, 116) | Point:4 |\n\n## Next Steps\n\n- Use DescribePoint with a point reference to inspect the code at a specific interaction\n- Use Evaluate with a point reference for ad-hoc value inspection at that moment\n- Use `type: 'click'` or `type: 'keypress'` to filter by interaction type",
+            "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+          },
+          {
+            "tool": "InspectElement",
+            "params": {
+              "point": "Point:2",
+              "element": "[role=\"combobox\"]",
+              "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+            },
+            "result": "Element:3 is `<button type=\"button\" role=\"combobox\" aria-expanded=\"true\" aria-autocomplete=\"none\" dir=\"ltr\" data-state=\"open\" data-slot=\"select-trigger\" data-size=\"default\" class=\"flex w-fit items-center justify-between gap-1.5 border-input py-2 whitespace-nowrap transition-colors outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-placeholder:text-muted-foreground data-[size=default]:h-8 data-[size=sm]:h-7 data-[size=sm]:rounded-[min(var(--radius-md),10px)] *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 [&amp;_svg:not([class*='size-'])]:size-4 h-12 min-w-[142px] rounded-full border-0 bg-white px-6 text-[17px] font-black shadow-sm\" aria-controls=\"radix-_r_0_\"></button>`.\nElement:3 is rendered by React component MainView at Point:14:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/main-view.tsx line 81 column 14\nNo elements are obstructing the center point of this element.\n\nElement:3 has 142px width and 32px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 8px right 24px bottom 8px left 24px.\n\nDistances to its parent element:\n- Top overflows parent by 12.00px\n- Right overflows parent by 4.00px\n- Bottom overflows parent by 12.00px\n- Left overflows parent by 134.00px\n\n\n### Parent Element:9\n\nElement:9 is `<div class=\"flex min-w-0 items-center rounded-full bg-[#eceef3] p-1\"></div>`.\nElement:9 is rendered by React component MainView at Point:15:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/main-view.tsx line 70 column 12\n\nElement:9 has 280px width and 56px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 4px right 4px bottom 4px left 4px.\n\nDistances to its parent element:\n- Top is aligned with parent boundary\n- Right overflows parent by 640.00px\n- Bottom is aligned with parent boundary\n- Left is aligned with parent boundary\n\n\n### Parent Element:10\n\nElement:10 is `<div class=\"mx-auto flex max-w-[980px] items-center justify-between gap-4\"></div>`.\nElement:10 is rendered by React component MainView at Point:16:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/main-view.tsx line 69 column 10\n\nElement:10 has 920px width and 56px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 0px right 0px bottom 0px left 0px.\n\nDistances to its parent element:\n- Top overflows parent by 32.00px\n- Right overflows parent by 48.00px\n- Bottom overflows parent by 60.00px\n- Left overflows parent by 48.00px\n\n\n### Parent Element:11\n\nElement:11 is `<header class=\"shrink-0 px-6 pt-8 sm:px-10 lg:px-12\"></header>`.\nElement:11 is rendered by React component MainView at Point:17:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/main-view.tsx line 68 column 8\n\nElement:11 has 1016px width and 148px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 32px right 48px bottom 0px left 48px.\n\nDistances to its parent element:\n- Top is aligned with parent boundary\n- Right is aligned with parent boundary\n- Bottom overflows parent by 572.00px\n- Left is aligned with parent boundary\n\n\n### Parent Element:12\n\nElement:12 is `<section class=\"flex min-w-0 flex-1 flex-col\"></section>`.\nElement:12 is rendered by React component MainView at Point:18:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/main-view.tsx line 67 column 6\n\nElement:12 has 1016px width and 720px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 0px right 0px bottom 0px left 0px.\n\nDistances to its parent element:\n- Top is aligned with parent boundary\n- Right is aligned with parent boundary\n- Bottom is aligned with parent boundary\n- Left is aligned with parent boundary\n\n\n### Parent Element:13\n\nElement:13 is `<div class=\"flex h-full min-w-0\"></div>`.\nElement:13 is rendered by React component MainView at Point:19:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/main-view.tsx line 66 column 4\n\nElement:13 has 1016px width and 720px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 0px right 0px bottom 0px left 0px.\n\nDistances to its parent element:\n- Top is aligned with parent boundary\n- Right is aligned with parent boundary\n- Bottom is aligned with parent boundary\n- Left is aligned with parent boundary\n\n\n",
+            "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+          }
+        ],
+        "is_interaction": true,
+        "screenshot_url": "https://static.replay.io/recordings/04a21ca2-46b5-431f-ad90-0ecbcff03ef1/analysis/screenshot-63132.jpg"
+      },
+      {
+        "text": "With the feed selector now on 'Saved', the main content area displays 'No stories found.' instead of the story the user just saved. The saved-feed request GET /api/feed?feed=saved returned 200 with an empty stories array ({\"feed\":\"saved\",\"source\":\"hn\",\"stories\":[]}), so StoryList renders the empty-state message. The saved story is absent from the Saved view.",
+        "evidence": [
+          {
+            "tool": "Screenshot",
+            "params": {
+              "timestamp": 88946,
+              "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+            },
+            "result": "Screenshot at timestamp 88946: https://static.replay.io/recordings/04a21ca2-46b5-431f-ad90-0ecbcff03ef1/analysis/screenshot-88946.jpg\nMouse position: 41.9% x 16.1%\nTime since last click: 27206.000ms\nNext execution point: Point:20 @ 88978.00ms",
+            "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+          },
+          {
+            "tool": "NetworkRequest",
+            "params": {
+              "mode": "detail",
+              "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1",
+              "requestIndex": 72
+            },
+            "result": "A GET network request with ID 2903.336 was made to https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/api/feed?feed=saved:\n<request_summary>\nThe response had status 200 ().\n</request_summary>\nEvents:\n  request @ 61781ms\n  response @ 63109ms\n  response-body @ 63109ms\n  request-done @ 63122ms\nRequest headers:\n<requestHeaders>\nsec-ch-ua: \ncontent-type: application/json\nsec-ch-ua-mobile: ?0\nUser-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/108.0.5359.0 Safari/537.36\nsec-ch-ua-platform: \n</requestHeaders>\nResponse headers:\n<responseHeaders>\nx-nf-request-id: 01KTZ375N2QZD82QNNSZ4XGH7T\ndate: Fri, 12 Jun 2026 23:38:33 GMT\ncontent-encoding: br\nx-content-type-options: nosniff\nstrict-transport-security: max-age=31536000; includeSubDomains; preload\nnetlify-vary: query\nserver: Netlify\nage: 0\ncache-status: \"Netlify Durable\"; fwd=bypass, \"Netlify Edge\"; fwd=miss\nvary: Accept-Encoding\ncontent-type: application/json\ncache-control: no-cache\n</responseHeaders>\n\nThe request body was\n EMPTY.\n\nThe response body was\n:\n<responseBody>\n{\"feed\":\"saved\",\"source\":\"hn\",\"stories\":[]}\n</responseBody>\n\n_Previous: `requestIndex=71` | Next: `requestIndex=73`_",
+            "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+          }
+        ],
+        "is_interaction": false,
+        "screenshot_url": "https://static.replay.io/recordings/04a21ca2-46b5-431f-ad90-0ecbcff03ef1/analysis/screenshot-88946.jpg"
+      }
+    ],
+    "root_cause": {
+      "text": "The server's saved-feed endpoint returns no stories even though the save endpoint reported the same story as saved. PATCH /api/stories/hn-48497609/save responded 200 with the story body containing \"saved\": true, but the subsequent GET /api/feed?feed=saved responded 200 with {\"feed\":\"saved\",\"source\":\"hn\",\"stories\":[]} — an empty list. These two server responses directly contradict each other for the same story: the server acknowledges the story is saved yet excludes it from the saved feed. This is a server-side defect — the saved feed does not include the story the server confirmed saving.",
+      "evidence": [
+        {
+          "tool": "NetworkRequest",
+          "params": {
+            "mode": "detail",
+            "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1",
+            "requestIndex": 66
+          },
+          "result": "A PATCH network request with ID 2903.318 was made to https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/api/stories/hn-48497609/save:\n<request_summary>\nThe response had status 200 ().\n</request_summary>\nInitiated at Point:5 @ 33578.00ms\nEvents:\n  request @ 33578ms\n  request-body @ 33578ms\n  response @ 33741ms\n  response-body @ 33741ms\n  request-done @ 33742ms\nRequest headers:\n<requestHeaders>\nsec-ch-ua: \ncontent-type: application/json\nsec-ch-ua-mobile: ?0\nUser-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/108.0.5359.0 Safari/537.36\nsec-ch-ua-platform: \n</requestHeaders>\nResponse headers:\n<responseHeaders>\nx-nf-request-id: 01KTZ36A3Q1EAATWYG95NPRY28\ndate: Fri, 12 Jun 2026 23:38:04 GMT\nstrict-transport-security: max-age=31536000; includeSubDomains; preload\nx-content-type-options: nosniff\nnetlify-vary: query\nserver: Netlify\nage: 0\ncache-status: \"Netlify Durable\"; fwd=bypass, \"Netlify Edge\"; fwd=method\ncontent-type: application/json\ncache-control: no-cache\n</responseHeaders>\n\nThe request body was\n:\n<requestBody>\n{\"story\":{\"id\":\"hn-48497609\",\"title\":\"If you are asking for human attention, demonstrate human effort\",\"summary\":\"A discussion-driven story from Hacker News, submitted by jjfoooo4.\",\"url\":\"https://tombedor.dev/human-attention-and-human-effort/\",\"domain\":\"tombedor.dev\",\"imageUrl\":\"https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=900&q=82\",\"communityId\":\"technology\",\"communityName\":\"technology\",\"communityIcon\":\"https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=120&q=80\",\"publishedAt\":\"2026-06-11T23:01:55Z\",\"diggCount\":1480,\"commentCount\":457,\"userVote\":0,\"saved\":false,\"featured\":true,\"mediaType\":\"article\",\"submittedBy\":\"jjfoooo4\",\"sourceCountry\":\"Hacker News\",\"tags\":[\"technology\",\"hacker-news\"]}}\n</requestBody>\n\nThe response body was\n:\n<responseBody>\n{\"id\":\"hn-48497609\",\"title\":\"If you are asking for human attention, demonstrate human effort\",\"summary\":\"A discussion-driven story from Hacker News, submitted by jjfoooo4.\",\"url\":\"https://tombedor.dev/human-attention-and-human-effort/\",\"domain\":\"tombedor.dev\",\"imageUrl\":\"https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=900&q=82\",\"communityId\":\"technology\",\"communityName\":\"technology\",\"communityIcon\":\"https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=120&q=80\",\"publishedAt\":\"2026-06-11T23:01:55Z\",\"diggCount\":1480,\"commentCount\":457,\"userVote\":0,\"saved\":true,\"featured\":true,\"mediaType\":\"article\",\"submittedBy\":\"jjfoooo4\",\"sourceCountry\":\"Hacker News\",\"tags\":[\"technology\",\"hacker-news\"]}\n</responseBody>\n\n_Previous: `requestIndex=65` | Next: `requestIndex=67`_",
+          "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+        },
+        {
+          "tool": "NetworkRequest",
+          "params": {
+            "mode": "detail",
+            "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1",
+            "requestIndex": 72
+          },
+          "result": "A GET network request with ID 2903.336 was made to https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/api/feed?feed=saved:\n<request_summary>\nThe response had status 200 ().\n</request_summary>\nEvents:\n  request @ 61781ms\n  response @ 63109ms\n  response-body @ 63109ms\n  request-done @ 63122ms\nRequest headers:\n<requestHeaders>\nsec-ch-ua: \ncontent-type: application/json\nsec-ch-ua-mobile: ?0\nUser-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/108.0.5359.0 Safari/537.36\nsec-ch-ua-platform: \n</requestHeaders>\nResponse headers:\n<responseHeaders>\nx-nf-request-id: 01KTZ375N2QZD82QNNSZ4XGH7T\ndate: Fri, 12 Jun 2026 23:38:33 GMT\ncontent-encoding: br\nx-content-type-options: nosniff\nstrict-transport-security: max-age=31536000; includeSubDomains; preload\nnetlify-vary: query\nserver: Netlify\nage: 0\ncache-status: \"Netlify Durable\"; fwd=bypass, \"Netlify Edge\"; fwd=miss\nvary: Accept-Encoding\ncontent-type: application/json\ncache-control: no-cache\n</responseHeaders>\n\nThe request body was\n EMPTY.\n\nThe response body was\n:\n<responseBody>\n{\"feed\":\"saved\",\"source\":\"hn\",\"stories\":[]}\n</responseBody>\n\n_Previous: `requestIndex=71` | Next: `requestIndex=73`_",
+          "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+        }
+      ]
+    },
+    "buggy_behavior": "Saving a story succeeds (the bookmark icon fills and the server returns the story with saved:true), but the 'Saved' feed view shows 'No stories found.' — the saved story never appears in the Saved feed."
+  },
+  "judge_assessment": {
+    "approved": true,
+    "problems": [],
+    "assessment": "Evidence: Screenshot 1 shows the Digg feed with the first story's bookmark icon appearing filled/solid after clicking save. Screenshot 2 shows the feed selector changed to 'Saved' with 'No stories found.' displayed. Screenshot 3 confirms the same empty saved feed state. The evidence strongly supports the root cause: the PATCH save endpoint returns the story with saved:true (200), but the subsequent GET /api/feed?feed=saved returns an empty stories array (200), a clear server-side contradiction. All factual claims (saved:true in response, empty stories array, story-list.tsx rendering, story-card.tsx line references) are verified in the evidence results. The root cause is stated definitively as a server-side defect evidenced by contradictory API responses, without speculating about internal implementation. Interaction evidence requirements are met for both interaction steps.\n\nRequirements: The bug report documents a clear, reproducible functional failure: saving a story succeeds (PATCH returns saved:true, bookmark icon fills), but switching to the Saved feed shows 'No stories found.' because GET /api/feed?feed=saved returns an empty stories array. The screenshots clearly show: [Image 1] the feed with the bookmark icon on the story card, [Image 2] the feed selector changed to 'Saved' showing the empty state, and [Image 3] confirming the persistent empty state. The root cause correctly identifies this as a server-side contradiction — the save endpoint confirms the story is saved but the saved feed endpoint returns no stories. This follows the guideline exception for server responses that contradict observable application state, so no backend recording analysis is required. The causal chain is well-traced with network evidence showing both the PATCH response (saved:true) and the GET response (empty stories array). Cross-run interference is not a plausible explanation since the save was performed by this journey and the server's own feed endpoint fails to return it. This is a clear core functionality failure that prevents the save-and-view-saved workflow.",
+    "judge_type": "requirements"
+  },
+  "judge_submissions": [
+    {
+      "result": {
+        "approved": false,
+        "problems": [
+          "Chronology step 2 (is_interaction: true) has a failed UserInteractions evidence call — the result is 'MCP error: The operation was aborted due to timeout'. Every interaction step must include a successful PlaywrightSteps or UserInteractions call showing the action taken. This step lacks valid interaction evidence."
+        ],
+        "assessment": "Screenshot 1 shows the Digg feed with the bookmark icon area visible; Screenshot 2 shows 'Saved' selected with 'No stories found.' displayed; Screenshot 3 shows the same empty Saved state. The bug itself is well-documented with clear contradictory API responses (save returns saved:true, feed returns empty stories). However, chronology Step 2 (an interaction step) has a failed UserInteractions evidence call that returned 'MCP error: The operation was aborted due to timeout', violating the requirement that every interaction step must include all three evidence types (Screenshot, UserInteractions/PlaywrightSteps, InspectElement/GetPointComponent).",
+        "judge_type": "evidence"
+      },
+      "attempt": 1,
+      "submitted_at": "2026-06-12T23:48:48.253Z",
+      "submitted_data": {
+        "title": "Saved stories never appear in the 'Saved' feed (saved-feed API returns empty despite save succeeding)",
+        "analysis": {
+          "chain": [
+            {
+              "text": "PATCH /api/stories/hn-48497609/save returned 200 with the story object's \"saved\" field set to true, so the application treats the story as saved (the bookmark icon is filled on the card).",
+              "evidence": [
+                {
+                  "tool": "NetworkRequest",
+                  "params": {
+                    "mode": "detail",
+                    "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1",
+                    "requestIndex": 66
+                  },
+                  "result": "A PATCH network request with ID 2903.318 was made to https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/api/stories/hn-48497609/save:\n<request_summary>\nThe response had status 200 ().\n</request_summary>\nInitiated at Point:5 @ 33578.00ms\nEvents:\n  request @ 33578ms\n  request-body @ 33578ms\n  response @ 33741ms\n  response-body @ 33741ms\n  request-done @ 33742ms\nRequest headers:\n<requestHeaders>\nsec-ch-ua: \ncontent-type: application/json\nsec-ch-ua-mobile: ?0\nUser-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/108.0.5359.0 Safari/537.36\nsec-ch-ua-platform: \n</requestHeaders>\nResponse headers:\n<responseHeaders>\nx-nf-request-id: 01KTZ36A3Q1EAATWYG95NPRY28\ndate: Fri, 12 Jun 2026 23:38:04 GMT\nstrict-transport-security: max-age=31536000; includeSubDomains; preload\nx-content-type-options: nosniff\nnetlify-vary: query\nserver: Netlify\nage: 0\ncache-status: \"Netlify Durable\"; fwd=bypass, \"Netlify Edge\"; fwd=method\ncontent-type: application/json\ncache-control: no-cache\n</responseHeaders>\n\nThe request body was\n:\n<requestBody>\n{\"story\":{\"id\":\"hn-48497609\",\"title\":\"If you are asking for human attention, demonstrate human effort\",\"summary\":\"A discussion-driven story from Hacker News, submitted by jjfoooo4.\",\"url\":\"https://tombedor.dev/human-attention-and-human-effort/\",\"domain\":\"tombedor.dev\",\"imageUrl\":\"https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=900&q=82\",\"communityId\":\"technology\",\"communityName\":\"technology\",\"communityIcon\":\"https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=120&q=80\",\"publishedAt\":\"2026-06-11T23:01:55Z\",\"diggCount\":1480,\"commentCount\":457,\"userVote\":0,\"saved\":false,\"featured\":true,\"mediaType\":\"article\",\"submittedBy\":\"jjfoooo4\",\"sourceCountry\":\"Hacker News\",\"tags\":[\"technology\",\"hacker-news\"]}}\n</requestBody>\n\nThe response body was\n:\n<responseBody>\n{\"id\":\"hn-48497609\",\"title\":\"If you are asking for human attention, demonstrate human effort\",\"summary\":\"A discussion-driven story from Hacker News, submitted by jjfoooo4.\",\"url\":\"https://tombedor.dev/human-attention-and-human-effort/\",\"domain\":\"tombedor.dev\",\"imageUrl\":\"https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=900&q=82\",\"communityId\":\"technology\",\"communityName\":\"technology\",\"communityIcon\":\"https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=120&q=80\",\"publishedAt\":\"2026-06-11T23:01:55Z\",\"diggCount\":1480,\"commentCount\":457,\"userVote\":0,\"saved\":true,\"featured\":true,\"mediaType\":\"article\",\"submittedBy\":\"jjfoooo4\",\"sourceCountry\":\"Hacker News\",\"tags\":[\"technology\",\"hacker-news\"]}\n</responseBody>\n\n_Previous: `requestIndex=65` | Next: `requestIndex=67`_",
+                  "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                }
+              ]
+            },
+            {
+              "text": "GET /api/feed?feed=saved returned 200 with body {\"feed\":\"saved\",\"source\":\"hn\",\"stories\":[]}, an empty list that does not contain the saved story hn-48497609 — directly contradicting the save response.",
+              "evidence": [
+                {
+                  "tool": "NetworkRequest",
+                  "params": {
+                    "mode": "detail",
+                    "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1",
+                    "requestIndex": 72
+                  },
+                  "result": "A GET network request with ID 2903.336 was made to https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/api/feed?feed=saved:\n<request_summary>\nThe response had status 200 ().\n</request_summary>\nEvents:\n  request @ 61781ms\n  response @ 63109ms\n  response-body @ 63109ms\n  request-done @ 63122ms\nRequest headers:\n<requestHeaders>\nsec-ch-ua: \ncontent-type: application/json\nsec-ch-ua-mobile: ?0\nUser-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/108.0.5359.0 Safari/537.36\nsec-ch-ua-platform: \n</requestHeaders>\nResponse headers:\n<responseHeaders>\nx-nf-request-id: 01KTZ375N2QZD82QNNSZ4XGH7T\ndate: Fri, 12 Jun 2026 23:38:33 GMT\ncontent-encoding: br\nx-content-type-options: nosniff\nstrict-transport-security: max-age=31536000; includeSubDomains; preload\nnetlify-vary: query\nserver: Netlify\nage: 0\ncache-status: \"Netlify Durable\"; fwd=bypass, \"Netlify Edge\"; fwd=miss\nvary: Accept-Encoding\ncontent-type: application/json\ncache-control: no-cache\n</responseHeaders>\n\nThe request body was\n EMPTY.\n\nThe response body was\n:\n<responseBody>\n{\"feed\":\"saved\",\"source\":\"hn\",\"stories\":[]}\n</responseBody>\n\n_Previous: `requestIndex=71` | Next: `requestIndex=73`_",
+                  "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                }
+              ]
+            },
+            {
+              "text": "Because the saved-feed response contains zero stories, the StoryList component takes its stories.length === 0 branch (story-list.tsx line 19) and renders 'No stories found.', so the saved story never appears in the Saved view.",
+              "evidence": [
+                {
+                  "tool": "SearchSources",
+                  "params": {
+                    "pattern": "No stories found",
+                    "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                  },
+                  "result": "### https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/story-list.tsx\n hits | L | code \n------|------|------\n     |    1 | import type { Story } from \"@/lib/types\" \n\n   2 |   21 |       <div className=\"py-20 text-center text-sm font-medium text-[#777887]\"> \n     |  *22 |         No stories found. \n     |   23 |       </div>",
+                  "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                }
+              ]
+            }
+          ],
+          "chronology": [
+            {
+              "text": "On the 'All Digg' feed, the user clicks the 'Save story' (bookmark) button on the top story card 'If you are asking for human attention, demonstrate human effort'. The bookmark icon changes to a filled/solid state (compared to the outline bookmark on the card below), indicating the story is now saved. This button is rendered by the StoryCard component (story-card.tsx line 139).",
+              "evidence": [
+                {
+                  "tool": "Screenshot",
+                  "params": {
+                    "timestamp": 33774,
+                    "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                  },
+                  "result": "Screenshot at timestamp 33774: https://static.replay.io/recordings/04a21ca2-46b5-431f-ad90-0ecbcff03ef1/analysis/screenshot-33774.jpg\nMouse position: 89.8% x 56.0%\nTime since last click: 200.000ms\nNext execution point: Point:6 @ 34022.96ms",
+                  "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                },
+                {
+                  "tool": "UserInteractions",
+                  "params": {
+                    "mode": "interactions",
+                    "type": "click",
+                    "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                  },
+                  "result": "# User Interactions\n\n**Filter:** click only\n**Showing 1–4 of 4 interactions**\n\n| # | Time | Type | Detail | Point |\n|---|------|------|--------|-------|\n| 0 | 33574ms | click | Click at (1150, 403) | Point:1 |\n| 1 | 61740ms | click | Click at (536, 116) | Point:2 |\n| 2 | 107520ms | click | Click at (536, 48) | Point:3 |\n| 3 | 144287ms | click | Click at (536, 116) | Point:4 |\n\n## Next Steps\n\n- Use DescribePoint with a point reference to inspect the code at a specific interaction\n- Use Evaluate with a point reference for ad-hoc value inspection at that moment\n- Use `type: 'click'` or `type: 'keypress'` to filter by interaction type",
+                  "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                },
+                {
+                  "tool": "InspectElement",
+                  "params": {
+                    "point": "Point:1",
+                    "element": "button[aria-label=\"Save story\"]",
+                    "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                  },
+                  "result": "Element:1 is `<button aria-label=\"Save story\" class=\"transition-colors hover:text-[#17181f]\"></button>`.\nElement:1 is rendered by React component StoryCard at Point:8:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/story-card.tsx line 139 column 10\n1 element(s) obstructing the center point of this element:\n<element ref=\"Element:2\" html=\"&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; class=&quot;lucide lucide-bookmark size-5&quot; aria-hidden=&quot;true&quot;&gt;&lt;/svg&gt;\">\n  Element:2 is rendered by React component StoryCard at Point:9:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/story-card.tsx line 147 column 12\n</element>\n\n\nElement:1 has 20px width and 20px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 0px right 0px bottom 0px left 0px.\n\nDistances to its parent element:\n- Top is aligned with parent boundary\n- Right overflows parent by 72.00px\n- Bottom is aligned with parent boundary\n- Left overflows parent by 36.00px\n\n\n### Parent Element:4\n\nElement:4 is `<div class=\"flex items-center gap-4 text-[#676878]\"></div>`.\nElement:4 is rendered by React component StoryCard at Point:10:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/story-card.tsx line 129 column 8\n\nElement:4 has 128px width and 20px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 0px right 0px bottom 0px left 0px.\n\nDistances to its parent element:\n- Top overflows parent by 3.50px\n- Right is aligned with parent boundary\n- Bottom overflows parent by 3.50px\n- Left overflows parent by 792.00px\n\n\n### Parent Element:5\n\nElement:5 is `<div class=\"mt-7 flex items-center justify-between\"></div>`.\nElement:5 is rendered by React component StoryCard at Point:11:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/story-card.tsx line 86 column 6\n\nElement:5 has 920px width and 27px height.\nMargin: top 28px right 0px bottom 0px left 0px.\nPadding: top 0px right 0px bottom 0px left 0px.\n\nDistances to its parent element:\n- Top overflows parent by 242.00px\n- Right is aligned with parent boundary\n- Bottom overflows parent by 33.00px\n- Left is aligned with parent boundary\n\n\n### Parent Element:6\n\nElement:6 is `<article class=\"group border-b border-[#e8e8ee] py-8\"></article>`.\nElement:6 is rendered by React component StoryCard at Point:11:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/story-card.tsx line 86 column 6\n\nElement:6 has 920px width and 302px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 32px right 0px bottom 32px left 0px.\n\nDistances to its parent element:\n- Top is aligned with parent boundary\n- Right is aligned with parent boundary\n- Bottom overflows parent by 9336.25px\n- Left is aligned with parent boundary\n\n\n### Parent Element:7\n\nElement:7 is `<div class=\"flex flex-col\"></div>`.\nElement:7 is rendered by React component StoryList at Point:12:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/story-list.tsx line 28 column 4\n\nElement:7 has 920px width and 9638.25px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 0px right 0px bottom 0px left 0px.\n\nDistances to its parent element:\n- Top is aligned with parent boundary\n- Right is aligned with parent boundary\n- Bottom is aligned with parent boundary\n- Left is aligned with parent boundary\n\n\n### Parent Element:8\n\nElement:8 is `<div class=\"mx-auto max-w-[980px]\"></div>`.\nElement:8 is rendered by React component MainView at Point:13:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/main-view.tsx line 147 column 10\n\nElement:8 has 920px width and 9638.25px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 0px right 0px bottom 0px left 0px.\n\nDistances to its parent element:\n- Top is aligned with parent boundary\n- Right overflows parent by 48.00px\n- Bottom distance: 9066.25px\n- Left overflows parent by 48.00px\n\n\n",
+                  "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                }
+              ],
+              "is_interaction": true,
+              "screenshot_url": "https://static.replay.io/recordings/04a21ca2-46b5-431f-ad90-0ecbcff03ef1/analysis/screenshot-33774.jpg"
+            },
+            {
+              "text": "The user opens the feed selector (the combobox showing 'All Digg', rendered by MainView at main-view.tsx line 81) and selects the 'Saved' option. The selector label changes to 'Saved' and the app fetches the saved feed.",
+              "evidence": [
+                {
+                  "tool": "Screenshot",
+                  "params": {
+                    "timestamp": 63132,
+                    "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                  },
+                  "result": "Screenshot at timestamp 63132: https://static.replay.io/recordings/04a21ca2-46b5-431f-ad90-0ecbcff03ef1/analysis/screenshot-63132.jpg\nMouse position: 41.9% x 16.1%\nTime since last click: 1392.000ms\nNext execution point: Point:7 @ 63263.61ms",
+                  "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                },
+                {
+                  "tool": "UserInteractions",
+                  "params": {
+                    "mode": "interactions",
+                    "type": "click",
+                    "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                  },
+                  "result": "MCP error: The operation was aborted due to timeout",
+                  "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                },
+                {
+                  "tool": "InspectElement",
+                  "params": {
+                    "point": "Point:2",
+                    "element": "[role=\"combobox\"]",
+                    "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                  },
+                  "result": "Element:3 is `<button type=\"button\" role=\"combobox\" aria-expanded=\"true\" aria-autocomplete=\"none\" dir=\"ltr\" data-state=\"open\" data-slot=\"select-trigger\" data-size=\"default\" class=\"flex w-fit items-center justify-between gap-1.5 border-input py-2 whitespace-nowrap transition-colors outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-placeholder:text-muted-foreground data-[size=default]:h-8 data-[size=sm]:h-7 data-[size=sm]:rounded-[min(var(--radius-md),10px)] *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 [&amp;_svg:not([class*='size-'])]:size-4 h-12 min-w-[142px] rounded-full border-0 bg-white px-6 text-[17px] font-black shadow-sm\" aria-controls=\"radix-_r_0_\"></button>`.\nElement:3 is rendered by React component MainView at Point:14:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/main-view.tsx line 81 column 14\nNo elements are obstructing the center point of this element.\n\nElement:3 has 142px width and 32px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 8px right 24px bottom 8px left 24px.\n\nDistances to its parent element:\n- Top overflows parent by 12.00px\n- Right overflows parent by 4.00px\n- Bottom overflows parent by 12.00px\n- Left overflows parent by 134.00px\n\n\n### Parent Element:9\n\nElement:9 is `<div class=\"flex min-w-0 items-center rounded-full bg-[#eceef3] p-1\"></div>`.\nElement:9 is rendered by React component MainView at Point:15:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/main-view.tsx line 70 column 12\n\nElement:9 has 280px width and 56px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 4px right 4px bottom 4px left 4px.\n\nDistances to its parent element:\n- Top is aligned with parent boundary\n- Right overflows parent by 640.00px\n- Bottom is aligned with parent boundary\n- Left is aligned with parent boundary\n\n\n### Parent Element:10\n\nElement:10 is `<div class=\"mx-auto flex max-w-[980px] items-center justify-between gap-4\"></div>`.\nElement:10 is rendered by React component MainView at Point:16:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/main-view.tsx line 69 column 10\n\nElement:10 has 920px width and 56px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 0px right 0px bottom 0px left 0px.\n\nDistances to its parent element:\n- Top overflows parent by 32.00px\n- Right overflows parent by 48.00px\n- Bottom overflows parent by 60.00px\n- Left overflows parent by 48.00px\n\n\n### Parent Element:11\n\nElement:11 is `<header class=\"shrink-0 px-6 pt-8 sm:px-10 lg:px-12\"></header>`.\nElement:11 is rendered by React component MainView at Point:17:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/main-view.tsx line 68 column 8\n\nElement:11 has 1016px width and 148px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 32px right 48px bottom 0px left 48px.\n\nDistances to its parent element:\n- Top is aligned with parent boundary\n- Right is aligned with parent boundary\n- Bottom overflows parent by 572.00px\n- Left is aligned with parent boundary\n\n\n### Parent Element:12\n\nElement:12 is `<section class=\"flex min-w-0 flex-1 flex-col\"></section>`.\nElement:12 is rendered by React component MainView at Point:18:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/main-view.tsx line 67 column 6\n\nElement:12 has 1016px width and 720px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 0px right 0px bottom 0px left 0px.\n\nDistances to its parent element:\n- Top is aligned with parent boundary\n- Right is aligned with parent boundary\n- Bottom is aligned with parent boundary\n- Left is aligned with parent boundary\n\n\n### Parent Element:13\n\nElement:13 is `<div class=\"flex h-full min-w-0\"></div>`.\nElement:13 is rendered by React component MainView at Point:19:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/main-view.tsx line 66 column 4\n\nElement:13 has 1016px width and 720px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 0px right 0px bottom 0px left 0px.\n\nDistances to its parent element:\n- Top is aligned with parent boundary\n- Right is aligned with parent boundary\n- Bottom is aligned with parent boundary\n- Left is aligned with parent boundary\n\n\n",
+                  "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                }
+              ],
+              "is_interaction": true,
+              "screenshot_url": "https://static.replay.io/recordings/04a21ca2-46b5-431f-ad90-0ecbcff03ef1/analysis/screenshot-63132.jpg"
+            },
+            {
+              "text": "With the feed selector now on 'Saved', the main content area displays 'No stories found.' instead of the story the user just saved. The saved-feed request GET /api/feed?feed=saved returned 200 with an empty stories array ({\"feed\":\"saved\",\"source\":\"hn\",\"stories\":[]}), so StoryList renders the empty-state message. The saved story is absent from the Saved view.",
+              "evidence": [
+                {
+                  "tool": "Screenshot",
+                  "params": {
+                    "timestamp": 88946,
+                    "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                  },
+                  "result": "Screenshot at timestamp 88946: https://static.replay.io/recordings/04a21ca2-46b5-431f-ad90-0ecbcff03ef1/analysis/screenshot-88946.jpg\nMouse position: 41.9% x 16.1%\nTime since last click: 27206.000ms\nNext execution point: Point:20 @ 88978.00ms",
+                  "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                },
+                {
+                  "tool": "NetworkRequest",
+                  "params": {
+                    "mode": "detail",
+                    "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1",
+                    "requestIndex": 72
+                  },
+                  "result": "A GET network request with ID 2903.336 was made to https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/api/feed?feed=saved:\n<request_summary>\nThe response had status 200 ().\n</request_summary>\nEvents:\n  request @ 61781ms\n  response @ 63109ms\n  response-body @ 63109ms\n  request-done @ 63122ms\nRequest headers:\n<requestHeaders>\nsec-ch-ua: \ncontent-type: application/json\nsec-ch-ua-mobile: ?0\nUser-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/108.0.5359.0 Safari/537.36\nsec-ch-ua-platform: \n</requestHeaders>\nResponse headers:\n<responseHeaders>\nx-nf-request-id: 01KTZ375N2QZD82QNNSZ4XGH7T\ndate: Fri, 12 Jun 2026 23:38:33 GMT\ncontent-encoding: br\nx-content-type-options: nosniff\nstrict-transport-security: max-age=31536000; includeSubDomains; preload\nnetlify-vary: query\nserver: Netlify\nage: 0\ncache-status: \"Netlify Durable\"; fwd=bypass, \"Netlify Edge\"; fwd=miss\nvary: Accept-Encoding\ncontent-type: application/json\ncache-control: no-cache\n</responseHeaders>\n\nThe request body was\n EMPTY.\n\nThe response body was\n:\n<responseBody>\n{\"feed\":\"saved\",\"source\":\"hn\",\"stories\":[]}\n</responseBody>\n\n_Previous: `requestIndex=71` | Next: `requestIndex=73`_",
+                  "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                }
+              ],
+              "is_interaction": false,
+              "screenshot_url": "https://static.replay.io/recordings/04a21ca2-46b5-431f-ad90-0ecbcff03ef1/analysis/screenshot-88946.jpg"
+            }
+          ],
+          "root_cause": {
+            "text": "The server's saved-feed endpoint returns no stories even though the save endpoint reported the same story as saved. PATCH /api/stories/hn-48497609/save responded 200 with the story body containing \"saved\": true, but the subsequent GET /api/feed?feed=saved responded 200 with {\"feed\":\"saved\",\"source\":\"hn\",\"stories\":[]} — an empty list. These two server responses directly contradict each other for the same story: the server acknowledges the story is saved yet excludes it from the saved feed. This is a server-side defect — the saved feed does not include the story the server confirmed saving.",
+            "evidence": [
+              {
+                "tool": "NetworkRequest",
+                "params": {
+                  "mode": "detail",
+                  "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1",
+                  "requestIndex": 66
+                },
+                "result": "A PATCH network request with ID 2903.318 was made to https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/api/stories/hn-48497609/save:\n<request_summary>\nThe response had status 200 ().\n</request_summary>\nInitiated at Point:5 @ 33578.00ms\nEvents:\n  request @ 33578ms\n  request-body @ 33578ms\n  response @ 33741ms\n  response-body @ 33741ms\n  request-done @ 33742ms\nRequest headers:\n<requestHeaders>\nsec-ch-ua: \ncontent-type: application/json\nsec-ch-ua-mobile: ?0\nUser-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/108.0.5359.0 Safari/537.36\nsec-ch-ua-platform: \n</requestHeaders>\nResponse headers:\n<responseHeaders>\nx-nf-request-id: 01KTZ36A3Q1EAATWYG95NPRY28\ndate: Fri, 12 Jun 2026 23:38:04 GMT\nstrict-transport-security: max-age=31536000; includeSubDomains; preload\nx-content-type-options: nosniff\nnetlify-vary: query\nserver: Netlify\nage: 0\ncache-status: \"Netlify Durable\"; fwd=bypass, \"Netlify Edge\"; fwd=method\ncontent-type: application/json\ncache-control: no-cache\n</responseHeaders>\n\nThe request body was\n:\n<requestBody>\n{\"story\":{\"id\":\"hn-48497609\",\"title\":\"If you are asking for human attention, demonstrate human effort\",\"summary\":\"A discussion-driven story from Hacker News, submitted by jjfoooo4.\",\"url\":\"https://tombedor.dev/human-attention-and-human-effort/\",\"domain\":\"tombedor.dev\",\"imageUrl\":\"https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=900&q=82\",\"communityId\":\"technology\",\"communityName\":\"technology\",\"communityIcon\":\"https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=120&q=80\",\"publishedAt\":\"2026-06-11T23:01:55Z\",\"diggCount\":1480,\"commentCount\":457,\"userVote\":0,\"saved\":false,\"featured\":true,\"mediaType\":\"article\",\"submittedBy\":\"jjfoooo4\",\"sourceCountry\":\"Hacker News\",\"tags\":[\"technology\",\"hacker-news\"]}}\n</requestBody>\n\nThe response body was\n:\n<responseBody>\n{\"id\":\"hn-48497609\",\"title\":\"If you are asking for human attention, demonstrate human effort\",\"summary\":\"A discussion-driven story from Hacker News, submitted by jjfoooo4.\",\"url\":\"https://tombedor.dev/human-attention-and-human-effort/\",\"domain\":\"tombedor.dev\",\"imageUrl\":\"https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=900&q=82\",\"communityId\":\"technology\",\"communityName\":\"technology\",\"communityIcon\":\"https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=120&q=80\",\"publishedAt\":\"2026-06-11T23:01:55Z\",\"diggCount\":1480,\"commentCount\":457,\"userVote\":0,\"saved\":true,\"featured\":true,\"mediaType\":\"article\",\"submittedBy\":\"jjfoooo4\",\"sourceCountry\":\"Hacker News\",\"tags\":[\"technology\",\"hacker-news\"]}\n</responseBody>\n\n_Previous: `requestIndex=65` | Next: `requestIndex=67`_",
+                "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+              },
+              {
+                "tool": "NetworkRequest",
+                "params": {
+                  "mode": "detail",
+                  "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1",
+                  "requestIndex": 72
+                },
+                "result": "A GET network request with ID 2903.336 was made to https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/api/feed?feed=saved:\n<request_summary>\nThe response had status 200 ().\n</request_summary>\nEvents:\n  request @ 61781ms\n  response @ 63109ms\n  response-body @ 63109ms\n  request-done @ 63122ms\nRequest headers:\n<requestHeaders>\nsec-ch-ua: \ncontent-type: application/json\nsec-ch-ua-mobile: ?0\nUser-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/108.0.5359.0 Safari/537.36\nsec-ch-ua-platform: \n</requestHeaders>\nResponse headers:\n<responseHeaders>\nx-nf-request-id: 01KTZ375N2QZD82QNNSZ4XGH7T\ndate: Fri, 12 Jun 2026 23:38:33 GMT\ncontent-encoding: br\nx-content-type-options: nosniff\nstrict-transport-security: max-age=31536000; includeSubDomains; preload\nnetlify-vary: query\nserver: Netlify\nage: 0\ncache-status: \"Netlify Durable\"; fwd=bypass, \"Netlify Edge\"; fwd=miss\nvary: Accept-Encoding\ncontent-type: application/json\ncache-control: no-cache\n</responseHeaders>\n\nThe request body was\n EMPTY.\n\nThe response body was\n:\n<responseBody>\n{\"feed\":\"saved\",\"source\":\"hn\",\"stories\":[]}\n</responseBody>\n\n_Previous: `requestIndex=71` | Next: `requestIndex=73`_",
+                "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+              }
+            ]
+          },
+          "buggy_behavior": "Saving a story succeeds (the bookmark icon fills and the server returns the story with saved:true), but the 'Saved' feed view shows 'No stories found.' — the saved story never appears in the Saved feed."
+        },
+        "description": "After clicking 'Save story' on a story card — which fills the bookmark icon and is confirmed by the server returning the story with \"saved\": true — switching the feed selector to the 'Saved' view shows 'No stories found.'. The just-saved story never appears in the Saved feed, so the save-and-view-saved journey cannot be completed."
+      },
+      "evidence_result": {
+        "approved": false,
+        "problems": [
+          "Chronology step 2 (is_interaction: true) has a failed UserInteractions evidence call — the result is 'MCP error: The operation was aborted due to timeout'. Every interaction step must include a successful PlaywrightSteps or UserInteractions call showing the action taken. This step lacks valid interaction evidence."
+        ],
+        "assessment": "Screenshot 1 shows the Digg feed with the bookmark icon area visible; Screenshot 2 shows 'Saved' selected with 'No stories found.' displayed; Screenshot 3 shows the same empty Saved state. The bug itself is well-documented with clear contradictory API responses (save returns saved:true, feed returns empty stories). However, chronology Step 2 (an interaction step) has a failed UserInteractions evidence call that returned 'MCP error: The operation was aborted due to timeout', violating the requirement that every interaction step must include all three evidence types (Screenshot, UserInteractions/PlaywrightSteps, InspectElement/GetPointComponent).",
+        "judge_type": "evidence"
+      }
+    },
+    {
+      "result": {
+        "approved": true,
+        "problems": [],
+        "assessment": "Evidence: Screenshot 1 shows the Digg feed with the first story's bookmark icon appearing filled/solid after clicking save. Screenshot 2 shows the feed selector changed to 'Saved' with 'No stories found.' displayed. Screenshot 3 confirms the same empty saved feed state. The evidence strongly supports the root cause: the PATCH save endpoint returns the story with saved:true (200), but the subsequent GET /api/feed?feed=saved returns an empty stories array (200), a clear server-side contradiction. All factual claims (saved:true in response, empty stories array, story-list.tsx rendering, story-card.tsx line references) are verified in the evidence results. The root cause is stated definitively as a server-side defect evidenced by contradictory API responses, without speculating about internal implementation. Interaction evidence requirements are met for both interaction steps.\n\nRequirements: The bug report documents a clear, reproducible functional failure: saving a story succeeds (PATCH returns saved:true, bookmark icon fills), but switching to the Saved feed shows 'No stories found.' because GET /api/feed?feed=saved returns an empty stories array. The screenshots clearly show: [Image 1] the feed with the bookmark icon on the story card, [Image 2] the feed selector changed to 'Saved' showing the empty state, and [Image 3] confirming the persistent empty state. The root cause correctly identifies this as a server-side contradiction — the save endpoint confirms the story is saved but the saved feed endpoint returns no stories. This follows the guideline exception for server responses that contradict observable application state, so no backend recording analysis is required. The causal chain is well-traced with network evidence showing both the PATCH response (saved:true) and the GET response (empty stories array). Cross-run interference is not a plausible explanation since the save was performed by this journey and the server's own feed endpoint fails to return it. This is a clear core functionality failure that prevents the save-and-view-saved workflow.",
+        "judge_type": "requirements"
+      },
+      "attempt": 2,
+      "submitted_at": "2026-06-12T23:50:15.130Z",
+      "submitted_data": {
+        "title": "Saved stories never appear in the 'Saved' feed (saved-feed API returns empty despite save succeeding)",
+        "analysis": {
+          "chain": [
+            {
+              "text": "PATCH /api/stories/hn-48497609/save returned 200 with the story object's \"saved\" field set to true, so the application treats the story as saved (the bookmark icon is filled on the card).",
+              "evidence": [
+                {
+                  "tool": "NetworkRequest",
+                  "params": {
+                    "mode": "detail",
+                    "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1",
+                    "requestIndex": 66
+                  },
+                  "result": "A PATCH network request with ID 2903.318 was made to https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/api/stories/hn-48497609/save:\n<request_summary>\nThe response had status 200 ().\n</request_summary>\nInitiated at Point:5 @ 33578.00ms\nEvents:\n  request @ 33578ms\n  request-body @ 33578ms\n  response @ 33741ms\n  response-body @ 33741ms\n  request-done @ 33742ms\nRequest headers:\n<requestHeaders>\nsec-ch-ua: \ncontent-type: application/json\nsec-ch-ua-mobile: ?0\nUser-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/108.0.5359.0 Safari/537.36\nsec-ch-ua-platform: \n</requestHeaders>\nResponse headers:\n<responseHeaders>\nx-nf-request-id: 01KTZ36A3Q1EAATWYG95NPRY28\ndate: Fri, 12 Jun 2026 23:38:04 GMT\nstrict-transport-security: max-age=31536000; includeSubDomains; preload\nx-content-type-options: nosniff\nnetlify-vary: query\nserver: Netlify\nage: 0\ncache-status: \"Netlify Durable\"; fwd=bypass, \"Netlify Edge\"; fwd=method\ncontent-type: application/json\ncache-control: no-cache\n</responseHeaders>\n\nThe request body was\n:\n<requestBody>\n{\"story\":{\"id\":\"hn-48497609\",\"title\":\"If you are asking for human attention, demonstrate human effort\",\"summary\":\"A discussion-driven story from Hacker News, submitted by jjfoooo4.\",\"url\":\"https://tombedor.dev/human-attention-and-human-effort/\",\"domain\":\"tombedor.dev\",\"imageUrl\":\"https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=900&q=82\",\"communityId\":\"technology\",\"communityName\":\"technology\",\"communityIcon\":\"https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=120&q=80\",\"publishedAt\":\"2026-06-11T23:01:55Z\",\"diggCount\":1480,\"commentCount\":457,\"userVote\":0,\"saved\":false,\"featured\":true,\"mediaType\":\"article\",\"submittedBy\":\"jjfoooo4\",\"sourceCountry\":\"Hacker News\",\"tags\":[\"technology\",\"hacker-news\"]}}\n</requestBody>\n\nThe response body was\n:\n<responseBody>\n{\"id\":\"hn-48497609\",\"title\":\"If you are asking for human attention, demonstrate human effort\",\"summary\":\"A discussion-driven story from Hacker News, submitted by jjfoooo4.\",\"url\":\"https://tombedor.dev/human-attention-and-human-effort/\",\"domain\":\"tombedor.dev\",\"imageUrl\":\"https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=900&q=82\",\"communityId\":\"technology\",\"communityName\":\"technology\",\"communityIcon\":\"https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=120&q=80\",\"publishedAt\":\"2026-06-11T23:01:55Z\",\"diggCount\":1480,\"commentCount\":457,\"userVote\":0,\"saved\":true,\"featured\":true,\"mediaType\":\"article\",\"submittedBy\":\"jjfoooo4\",\"sourceCountry\":\"Hacker News\",\"tags\":[\"technology\",\"hacker-news\"]}\n</responseBody>\n\n_Previous: `requestIndex=65` | Next: `requestIndex=67`_",
+                  "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                }
+              ]
+            },
+            {
+              "text": "GET /api/feed?feed=saved returned 200 with body {\"feed\":\"saved\",\"source\":\"hn\",\"stories\":[]}, an empty list that does not contain the saved story hn-48497609 — directly contradicting the save response.",
+              "evidence": [
+                {
+                  "tool": "NetworkRequest",
+                  "params": {
+                    "mode": "detail",
+                    "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1",
+                    "requestIndex": 72
+                  },
+                  "result": "A GET network request with ID 2903.336 was made to https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/api/feed?feed=saved:\n<request_summary>\nThe response had status 200 ().\n</request_summary>\nEvents:\n  request @ 61781ms\n  response @ 63109ms\n  response-body @ 63109ms\n  request-done @ 63122ms\nRequest headers:\n<requestHeaders>\nsec-ch-ua: \ncontent-type: application/json\nsec-ch-ua-mobile: ?0\nUser-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/108.0.5359.0 Safari/537.36\nsec-ch-ua-platform: \n</requestHeaders>\nResponse headers:\n<responseHeaders>\nx-nf-request-id: 01KTZ375N2QZD82QNNSZ4XGH7T\ndate: Fri, 12 Jun 2026 23:38:33 GMT\ncontent-encoding: br\nx-content-type-options: nosniff\nstrict-transport-security: max-age=31536000; includeSubDomains; preload\nnetlify-vary: query\nserver: Netlify\nage: 0\ncache-status: \"Netlify Durable\"; fwd=bypass, \"Netlify Edge\"; fwd=miss\nvary: Accept-Encoding\ncontent-type: application/json\ncache-control: no-cache\n</responseHeaders>\n\nThe request body was\n EMPTY.\n\nThe response body was\n:\n<responseBody>\n{\"feed\":\"saved\",\"source\":\"hn\",\"stories\":[]}\n</responseBody>\n\n_Previous: `requestIndex=71` | Next: `requestIndex=73`_",
+                  "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                }
+              ]
+            },
+            {
+              "text": "Because the saved-feed response contains zero stories, the StoryList component takes its stories.length === 0 branch (story-list.tsx line 19) and renders 'No stories found.', so the saved story never appears in the Saved view.",
+              "evidence": [
+                {
+                  "tool": "SearchSources",
+                  "params": {
+                    "pattern": "No stories found",
+                    "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                  },
+                  "result": "### https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/story-list.tsx\n hits | L | code \n------|------|------\n     |    1 | import type { Story } from \"@/lib/types\" \n\n   2 |   21 |       <div className=\"py-20 text-center text-sm font-medium text-[#777887]\"> \n     |  *22 |         No stories found. \n     |   23 |       </div>",
+                  "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                }
+              ]
+            }
+          ],
+          "chronology": [
+            {
+              "text": "On the 'All Digg' feed, the user clicks the 'Save story' (bookmark) button on the top story card 'If you are asking for human attention, demonstrate human effort'. The bookmark icon changes to a filled/solid state (compared to the outline bookmark on the card below), indicating the story is now saved. This button is rendered by the StoryCard component (story-card.tsx line 139).",
+              "evidence": [
+                {
+                  "tool": "Screenshot",
+                  "params": {
+                    "timestamp": 33774,
+                    "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                  },
+                  "result": "Screenshot at timestamp 33774: https://static.replay.io/recordings/04a21ca2-46b5-431f-ad90-0ecbcff03ef1/analysis/screenshot-33774.jpg\nMouse position: 89.8% x 56.0%\nTime since last click: 200.000ms\nNext execution point: Point:6 @ 34022.96ms",
+                  "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                },
+                {
+                  "tool": "UserInteractions",
+                  "params": {
+                    "mode": "interactions",
+                    "type": "click",
+                    "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                  },
+                  "result": "# User Interactions\n\n**Filter:** click only\n**Showing 1–4 of 4 interactions**\n\n| # | Time | Type | Detail | Point |\n|---|------|------|--------|-------|\n| 0 | 33574ms | click | Click at (1150, 403) | Point:1 |\n| 1 | 61740ms | click | Click at (536, 116) | Point:2 |\n| 2 | 107520ms | click | Click at (536, 48) | Point:3 |\n| 3 | 144287ms | click | Click at (536, 116) | Point:4 |\n\n## Next Steps\n\n- Use DescribePoint with a point reference to inspect the code at a specific interaction\n- Use Evaluate with a point reference for ad-hoc value inspection at that moment\n- Use `type: 'click'` or `type: 'keypress'` to filter by interaction type",
+                  "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                },
+                {
+                  "tool": "InspectElement",
+                  "params": {
+                    "point": "Point:1",
+                    "element": "button[aria-label=\"Save story\"]",
+                    "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                  },
+                  "result": "Element:1 is `<button aria-label=\"Save story\" class=\"transition-colors hover:text-[#17181f]\"></button>`.\nElement:1 is rendered by React component StoryCard at Point:8:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/story-card.tsx line 139 column 10\n1 element(s) obstructing the center point of this element:\n<element ref=\"Element:2\" html=\"&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; class=&quot;lucide lucide-bookmark size-5&quot; aria-hidden=&quot;true&quot;&gt;&lt;/svg&gt;\">\n  Element:2 is rendered by React component StoryCard at Point:9:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/story-card.tsx line 147 column 12\n</element>\n\n\nElement:1 has 20px width and 20px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 0px right 0px bottom 0px left 0px.\n\nDistances to its parent element:\n- Top is aligned with parent boundary\n- Right overflows parent by 72.00px\n- Bottom is aligned with parent boundary\n- Left overflows parent by 36.00px\n\n\n### Parent Element:4\n\nElement:4 is `<div class=\"flex items-center gap-4 text-[#676878]\"></div>`.\nElement:4 is rendered by React component StoryCard at Point:10:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/story-card.tsx line 129 column 8\n\nElement:4 has 128px width and 20px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 0px right 0px bottom 0px left 0px.\n\nDistances to its parent element:\n- Top overflows parent by 3.50px\n- Right is aligned with parent boundary\n- Bottom overflows parent by 3.50px\n- Left overflows parent by 792.00px\n\n\n### Parent Element:5\n\nElement:5 is `<div class=\"mt-7 flex items-center justify-between\"></div>`.\nElement:5 is rendered by React component StoryCard at Point:11:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/story-card.tsx line 86 column 6\n\nElement:5 has 920px width and 27px height.\nMargin: top 28px right 0px bottom 0px left 0px.\nPadding: top 0px right 0px bottom 0px left 0px.\n\nDistances to its parent element:\n- Top overflows parent by 242.00px\n- Right is aligned with parent boundary\n- Bottom overflows parent by 33.00px\n- Left is aligned with parent boundary\n\n\n### Parent Element:6\n\nElement:6 is `<article class=\"group border-b border-[#e8e8ee] py-8\"></article>`.\nElement:6 is rendered by React component StoryCard at Point:11:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/story-card.tsx line 86 column 6\n\nElement:6 has 920px width and 302px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 32px right 0px bottom 32px left 0px.\n\nDistances to its parent element:\n- Top is aligned with parent boundary\n- Right is aligned with parent boundary\n- Bottom overflows parent by 9336.25px\n- Left is aligned with parent boundary\n\n\n### Parent Element:7\n\nElement:7 is `<div class=\"flex flex-col\"></div>`.\nElement:7 is rendered by React component StoryList at Point:12:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/story-list.tsx line 28 column 4\n\nElement:7 has 920px width and 9638.25px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 0px right 0px bottom 0px left 0px.\n\nDistances to its parent element:\n- Top is aligned with parent boundary\n- Right is aligned with parent boundary\n- Bottom is aligned with parent boundary\n- Left is aligned with parent boundary\n\n\n### Parent Element:8\n\nElement:8 is `<div class=\"mx-auto max-w-[980px]\"></div>`.\nElement:8 is rendered by React component MainView at Point:13:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/main-view.tsx line 147 column 10\n\nElement:8 has 920px width and 9638.25px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 0px right 0px bottom 0px left 0px.\n\nDistances to its parent element:\n- Top is aligned with parent boundary\n- Right overflows parent by 48.00px\n- Bottom distance: 9066.25px\n- Left overflows parent by 48.00px\n\n\n",
+                  "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                }
+              ],
+              "is_interaction": true,
+              "screenshot_url": "https://static.replay.io/recordings/04a21ca2-46b5-431f-ad90-0ecbcff03ef1/analysis/screenshot-33774.jpg"
+            },
+            {
+              "text": "The user opens the feed selector (the combobox showing 'All Digg', rendered by MainView at main-view.tsx line 81) and selects the 'Saved' option. The selector label changes to 'Saved' and the app fetches the saved feed.",
+              "evidence": [
+                {
+                  "tool": "Screenshot",
+                  "params": {
+                    "timestamp": 63132,
+                    "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                  },
+                  "result": "Screenshot at timestamp 63132: https://static.replay.io/recordings/04a21ca2-46b5-431f-ad90-0ecbcff03ef1/analysis/screenshot-63132.jpg\nMouse position: 41.9% x 16.1%\nTime since last click: 1392.000ms\nNext execution point: Point:7 @ 63263.61ms",
+                  "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                },
+                {
+                  "tool": "UserInteractions",
+                  "params": {
+                    "mode": "interactions",
+                    "type": "click",
+                    "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                  },
+                  "result": "# User Interactions\n\n**Filter:** click only\n**Showing 1–4 of 4 interactions**\n\n| # | Time | Type | Detail | Point |\n|---|------|------|--------|-------|\n| 0 | 33574ms | click | Click at (1150, 403) | Point:1 |\n| 1 | 61740ms | click | Click at (536, 116) | Point:2 |\n| 2 | 107520ms | click | Click at (536, 48) | Point:3 |\n| 3 | 144287ms | click | Click at (536, 116) | Point:4 |\n\n## Next Steps\n\n- Use DescribePoint with a point reference to inspect the code at a specific interaction\n- Use Evaluate with a point reference for ad-hoc value inspection at that moment\n- Use `type: 'click'` or `type: 'keypress'` to filter by interaction type",
+                  "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                },
+                {
+                  "tool": "InspectElement",
+                  "params": {
+                    "point": "Point:2",
+                    "element": "[role=\"combobox\"]",
+                    "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                  },
+                  "result": "Element:3 is `<button type=\"button\" role=\"combobox\" aria-expanded=\"true\" aria-autocomplete=\"none\" dir=\"ltr\" data-state=\"open\" data-slot=\"select-trigger\" data-size=\"default\" class=\"flex w-fit items-center justify-between gap-1.5 border-input py-2 whitespace-nowrap transition-colors outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-placeholder:text-muted-foreground data-[size=default]:h-8 data-[size=sm]:h-7 data-[size=sm]:rounded-[min(var(--radius-md),10px)] *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 [&amp;_svg:not([class*='size-'])]:size-4 h-12 min-w-[142px] rounded-full border-0 bg-white px-6 text-[17px] font-black shadow-sm\" aria-controls=\"radix-_r_0_\"></button>`.\nElement:3 is rendered by React component MainView at Point:14:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/main-view.tsx line 81 column 14\nNo elements are obstructing the center point of this element.\n\nElement:3 has 142px width and 32px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 8px right 24px bottom 8px left 24px.\n\nDistances to its parent element:\n- Top overflows parent by 12.00px\n- Right overflows parent by 4.00px\n- Bottom overflows parent by 12.00px\n- Left overflows parent by 134.00px\n\n\n### Parent Element:9\n\nElement:9 is `<div class=\"flex min-w-0 items-center rounded-full bg-[#eceef3] p-1\"></div>`.\nElement:9 is rendered by React component MainView at Point:15:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/main-view.tsx line 70 column 12\n\nElement:9 has 280px width and 56px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 4px right 4px bottom 4px left 4px.\n\nDistances to its parent element:\n- Top is aligned with parent boundary\n- Right overflows parent by 640.00px\n- Bottom is aligned with parent boundary\n- Left is aligned with parent boundary\n\n\n### Parent Element:10\n\nElement:10 is `<div class=\"mx-auto flex max-w-[980px] items-center justify-between gap-4\"></div>`.\nElement:10 is rendered by React component MainView at Point:16:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/main-view.tsx line 69 column 10\n\nElement:10 has 920px width and 56px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 0px right 0px bottom 0px left 0px.\n\nDistances to its parent element:\n- Top overflows parent by 32.00px\n- Right overflows parent by 48.00px\n- Bottom overflows parent by 60.00px\n- Left overflows parent by 48.00px\n\n\n### Parent Element:11\n\nElement:11 is `<header class=\"shrink-0 px-6 pt-8 sm:px-10 lg:px-12\"></header>`.\nElement:11 is rendered by React component MainView at Point:17:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/main-view.tsx line 68 column 8\n\nElement:11 has 1016px width and 148px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 32px right 48px bottom 0px left 48px.\n\nDistances to its parent element:\n- Top is aligned with parent boundary\n- Right is aligned with parent boundary\n- Bottom overflows parent by 572.00px\n- Left is aligned with parent boundary\n\n\n### Parent Element:12\n\nElement:12 is `<section class=\"flex min-w-0 flex-1 flex-col\"></section>`.\nElement:12 is rendered by React component MainView at Point:18:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/main-view.tsx line 67 column 6\n\nElement:12 has 1016px width and 720px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 0px right 0px bottom 0px left 0px.\n\nDistances to its parent element:\n- Top is aligned with parent boundary\n- Right is aligned with parent boundary\n- Bottom is aligned with parent boundary\n- Left is aligned with parent boundary\n\n\n### Parent Element:13\n\nElement:13 is `<div class=\"flex h-full min-w-0\"></div>`.\nElement:13 is rendered by React component MainView at Point:19:\nRelevant code: https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/main-view.tsx line 66 column 4\n\nElement:13 has 1016px width and 720px height.\nMargin: top 0px right 0px bottom 0px left 0px.\nPadding: top 0px right 0px bottom 0px left 0px.\n\nDistances to its parent element:\n- Top is aligned with parent boundary\n- Right is aligned with parent boundary\n- Bottom is aligned with parent boundary\n- Left is aligned with parent boundary\n\n\n",
+                  "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                }
+              ],
+              "is_interaction": true,
+              "screenshot_url": "https://static.replay.io/recordings/04a21ca2-46b5-431f-ad90-0ecbcff03ef1/analysis/screenshot-63132.jpg"
+            },
+            {
+              "text": "With the feed selector now on 'Saved', the main content area displays 'No stories found.' instead of the story the user just saved. The saved-feed request GET /api/feed?feed=saved returned 200 with an empty stories array ({\"feed\":\"saved\",\"source\":\"hn\",\"stories\":[]}), so StoryList renders the empty-state message. The saved story is absent from the Saved view.",
+              "evidence": [
+                {
+                  "tool": "Screenshot",
+                  "params": {
+                    "timestamp": 88946,
+                    "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                  },
+                  "result": "Screenshot at timestamp 88946: https://static.replay.io/recordings/04a21ca2-46b5-431f-ad90-0ecbcff03ef1/analysis/screenshot-88946.jpg\nMouse position: 41.9% x 16.1%\nTime since last click: 27206.000ms\nNext execution point: Point:20 @ 88978.00ms",
+                  "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                },
+                {
+                  "tool": "NetworkRequest",
+                  "params": {
+                    "mode": "detail",
+                    "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1",
+                    "requestIndex": 72
+                  },
+                  "result": "A GET network request with ID 2903.336 was made to https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/api/feed?feed=saved:\n<request_summary>\nThe response had status 200 ().\n</request_summary>\nEvents:\n  request @ 61781ms\n  response @ 63109ms\n  response-body @ 63109ms\n  request-done @ 63122ms\nRequest headers:\n<requestHeaders>\nsec-ch-ua: \ncontent-type: application/json\nsec-ch-ua-mobile: ?0\nUser-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/108.0.5359.0 Safari/537.36\nsec-ch-ua-platform: \n</requestHeaders>\nResponse headers:\n<responseHeaders>\nx-nf-request-id: 01KTZ375N2QZD82QNNSZ4XGH7T\ndate: Fri, 12 Jun 2026 23:38:33 GMT\ncontent-encoding: br\nx-content-type-options: nosniff\nstrict-transport-security: max-age=31536000; includeSubDomains; preload\nnetlify-vary: query\nserver: Netlify\nage: 0\ncache-status: \"Netlify Durable\"; fwd=bypass, \"Netlify Edge\"; fwd=miss\nvary: Accept-Encoding\ncontent-type: application/json\ncache-control: no-cache\n</responseHeaders>\n\nThe request body was\n EMPTY.\n\nThe response body was\n:\n<responseBody>\n{\"feed\":\"saved\",\"source\":\"hn\",\"stories\":[]}\n</responseBody>\n\n_Previous: `requestIndex=71` | Next: `requestIndex=73`_",
+                  "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+                }
+              ],
+              "is_interaction": false,
+              "screenshot_url": "https://static.replay.io/recordings/04a21ca2-46b5-431f-ad90-0ecbcff03ef1/analysis/screenshot-88946.jpg"
+            }
+          ],
+          "root_cause": {
+            "text": "The server's saved-feed endpoint returns no stories even though the save endpoint reported the same story as saved. PATCH /api/stories/hn-48497609/save responded 200 with the story body containing \"saved\": true, but the subsequent GET /api/feed?feed=saved responded 200 with {\"feed\":\"saved\",\"source\":\"hn\",\"stories\":[]} — an empty list. These two server responses directly contradict each other for the same story: the server acknowledges the story is saved yet excludes it from the saved feed. This is a server-side defect — the saved feed does not include the story the server confirmed saving.",
+            "evidence": [
+              {
+                "tool": "NetworkRequest",
+                "params": {
+                  "mode": "detail",
+                  "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1",
+                  "requestIndex": 66
+                },
+                "result": "A PATCH network request with ID 2903.318 was made to https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/api/stories/hn-48497609/save:\n<request_summary>\nThe response had status 200 ().\n</request_summary>\nInitiated at Point:5 @ 33578.00ms\nEvents:\n  request @ 33578ms\n  request-body @ 33578ms\n  response @ 33741ms\n  response-body @ 33741ms\n  request-done @ 33742ms\nRequest headers:\n<requestHeaders>\nsec-ch-ua: \ncontent-type: application/json\nsec-ch-ua-mobile: ?0\nUser-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/108.0.5359.0 Safari/537.36\nsec-ch-ua-platform: \n</requestHeaders>\nResponse headers:\n<responseHeaders>\nx-nf-request-id: 01KTZ36A3Q1EAATWYG95NPRY28\ndate: Fri, 12 Jun 2026 23:38:04 GMT\nstrict-transport-security: max-age=31536000; includeSubDomains; preload\nx-content-type-options: nosniff\nnetlify-vary: query\nserver: Netlify\nage: 0\ncache-status: \"Netlify Durable\"; fwd=bypass, \"Netlify Edge\"; fwd=method\ncontent-type: application/json\ncache-control: no-cache\n</responseHeaders>\n\nThe request body was\n:\n<requestBody>\n{\"story\":{\"id\":\"hn-48497609\",\"title\":\"If you are asking for human attention, demonstrate human effort\",\"summary\":\"A discussion-driven story from Hacker News, submitted by jjfoooo4.\",\"url\":\"https://tombedor.dev/human-attention-and-human-effort/\",\"domain\":\"tombedor.dev\",\"imageUrl\":\"https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=900&q=82\",\"communityId\":\"technology\",\"communityName\":\"technology\",\"communityIcon\":\"https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=120&q=80\",\"publishedAt\":\"2026-06-11T23:01:55Z\",\"diggCount\":1480,\"commentCount\":457,\"userVote\":0,\"saved\":false,\"featured\":true,\"mediaType\":\"article\",\"submittedBy\":\"jjfoooo4\",\"sourceCountry\":\"Hacker News\",\"tags\":[\"technology\",\"hacker-news\"]}}\n</requestBody>\n\nThe response body was\n:\n<responseBody>\n{\"id\":\"hn-48497609\",\"title\":\"If you are asking for human attention, demonstrate human effort\",\"summary\":\"A discussion-driven story from Hacker News, submitted by jjfoooo4.\",\"url\":\"https://tombedor.dev/human-attention-and-human-effort/\",\"domain\":\"tombedor.dev\",\"imageUrl\":\"https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=900&q=82\",\"communityId\":\"technology\",\"communityName\":\"technology\",\"communityIcon\":\"https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=120&q=80\",\"publishedAt\":\"2026-06-11T23:01:55Z\",\"diggCount\":1480,\"commentCount\":457,\"userVote\":0,\"saved\":true,\"featured\":true,\"mediaType\":\"article\",\"submittedBy\":\"jjfoooo4\",\"sourceCountry\":\"Hacker News\",\"tags\":[\"technology\",\"hacker-news\"]}\n</responseBody>\n\n_Previous: `requestIndex=65` | Next: `requestIndex=67`_",
+                "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+              },
+              {
+                "tool": "NetworkRequest",
+                "params": {
+                  "mode": "detail",
+                  "recordingId": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1",
+                  "requestIndex": 72
+                },
+                "result": "A GET network request with ID 2903.336 was made to https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/api/feed?feed=saved:\n<request_summary>\nThe response had status 200 ().\n</request_summary>\nEvents:\n  request @ 61781ms\n  response @ 63109ms\n  response-body @ 63109ms\n  request-done @ 63122ms\nRequest headers:\n<requestHeaders>\nsec-ch-ua: \ncontent-type: application/json\nsec-ch-ua-mobile: ?0\nUser-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/108.0.5359.0 Safari/537.36\nsec-ch-ua-platform: \n</requestHeaders>\nResponse headers:\n<responseHeaders>\nx-nf-request-id: 01KTZ375N2QZD82QNNSZ4XGH7T\ndate: Fri, 12 Jun 2026 23:38:33 GMT\ncontent-encoding: br\nx-content-type-options: nosniff\nstrict-transport-security: max-age=31536000; includeSubDomains; preload\nnetlify-vary: query\nserver: Netlify\nage: 0\ncache-status: \"Netlify Durable\"; fwd=bypass, \"Netlify Edge\"; fwd=miss\nvary: Accept-Encoding\ncontent-type: application/json\ncache-control: no-cache\n</responseHeaders>\n\nThe request body was\n EMPTY.\n\nThe response body was\n:\n<responseBody>\n{\"feed\":\"saved\",\"source\":\"hn\",\"stories\":[]}\n</responseBody>\n\n_Previous: `requestIndex=71` | Next: `requestIndex=73`_",
+                "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+              }
+            ]
+          },
+          "buggy_behavior": "Saving a story succeeds (the bookmark icon fills and the server returns the story with saved:true), but the 'Saved' feed view shows 'No stories found.' — the saved story never appears in the Saved feed."
+        },
+        "description": "After clicking 'Save story' on a story card — which fills the bookmark icon and is confirmed by the server returning the story with \"saved\": true — switching the feed selector to the 'Saved' view shows 'No stories found.'. The just-saved story never appears in the Saved feed, so the save-and-view-saved journey cannot be completed."
+      },
+      "evidence_result": {
+        "approved": true,
+        "problems": [],
+        "assessment": "Screenshot 1 shows the Digg feed with the first story's bookmark icon appearing filled/solid after clicking save. Screenshot 2 shows the feed selector changed to 'Saved' with 'No stories found.' displayed. Screenshot 3 confirms the same empty saved feed state. The evidence strongly supports the root cause: the PATCH save endpoint returns the story with saved:true (200), but the subsequent GET /api/feed?feed=saved returns an empty stories array (200), a clear server-side contradiction. All factual claims (saved:true in response, empty stories array, story-list.tsx rendering, story-card.tsx line references) are verified in the evidence results. The root cause is stated definitively as a server-side defect evidenced by contradictory API responses, without speculating about internal implementation. Interaction evidence requirements are met for both interaction steps.",
+        "judge_type": "evidence"
+      },
+      "requirements_result": {
+        "approved": true,
+        "problems": [],
+        "assessment": "The bug report documents a clear, reproducible functional failure: saving a story succeeds (PATCH returns saved:true, bookmark icon fills), but switching to the Saved feed shows 'No stories found.' because GET /api/feed?feed=saved returns an empty stories array. The screenshots clearly show: [Image 1] the feed with the bookmark icon on the story card, [Image 2] the feed selector changed to 'Saved' showing the empty state, and [Image 3] confirming the persistent empty state. The root cause correctly identifies this as a server-side contradiction — the save endpoint confirms the story is saved but the saved feed endpoint returns no stories. This follows the guideline exception for server responses that contradict observable application state, so no backend recording analysis is required. The causal chain is well-traced with network evidence showing both the PATCH response (saved:true) and the GET response (empty stories array). Cross-run interference is not a plausible explanation since the save was performed by this journey and the server's own feed endpoint fails to return it. This is a clear core functionality failure that prevents the save-and-view-saved workflow.",
+        "judge_type": "requirements"
+      }
+    }
+  ],
+  "callback_url": null,
+  "polish_category": null,
+  "video_spec": {
+    "segments": [
+      {
+        "end_time": 35000,
+        "subtitle": "Click 'Save story' on the top card — the bookmark fills and the server returns saved:true",
+        "start_time": 33000,
+        "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+      },
+      {
+        "end_time": 64000,
+        "subtitle": "Switch the feed selector to 'Saved' — GET /api/feed?feed=saved returns an empty list",
+        "start_time": 61000,
+        "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+      },
+      {
+        "end_time": 90000,
+        "subtitle": "The Saved view shows 'No stories found' — the saved story is missing",
+        "start_time": 88000,
+        "recording_id": "04a21ca2-46b5-431f-ad90-0ecbcff03ef1"
+      }
+    ]
+  },
+  "video_url": "https://gxd99ovu4c.ufs.sh/f/7CiuUd6bGjflXHduDkroEH0z4TcMZhnsyItQfd6V28wG5Lox",
+  "guidance_deps": null,
+  "polish_pass_id": null,
+  "screenshot_spec": null,
+  "task_id": "task-1781307062260-rg6f06tt",
+  "project_name": "ExampleApps PR #8 - digg-clone",
+  "journey_id": "journey-mqbk8dlm-wrrf",
+  "journey_name": "Save a story and view it in the Saved feed",
+  "test_run_replay_recording_ids": null,
+  "duplicates": []
+}

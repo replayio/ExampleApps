@@ -1,0 +1,207 @@
+{
+  "id": "bug-mqbk7l4n-fc4j",
+  "project_id": "proj-exampleapps-pr-8-digg-clone-mqbjvg8z",
+  "severity": "medium",
+  "title": "Sidebar community navigation icons have no visible label or hover tooltip, so users can't tell which community each represents",
+  "description": "The left sidebar shows a vertical column of community navigation buttons (aria-labels: gaming, entertainment, finance, technology, music, science, oldweb, cozy). Each is a 48x48 circular stock-photo avatar with an empty img alt, no visible text label, and no title/hover tooltip. The app bundles no tooltip component or tooltip library (only Radix Popper, which is used by the 'All Digg' Select), so hovering an icon reveals nothing. A sighted user therefore cannot tell which community any icon links to without clicking it and observing the result — forcing trial-and-error to navigate communities. The photos are generic and bear no inherent relationship to their topic (a photo cannot convey 'finance' or 'science'), so they are genuinely ambiguous rather than self-explanatory icons.",
+  "reproduction_steps": null,
+  "expected_behavior": "Each community navigation icon should be identifiable by sighted users without clicking — for example a visible community name beside/below the icon, or at minimum a hover tooltip (title attribute or a Tooltip component) showing the community name.",
+  "actual_behavior": "Each of the 8 sidebar community buttons renders only a circular photo (48x48) with an aria-label but no visible text, no title attribute, and empty img alt. There is no tooltip mechanism in the app bundle, so hovering shows nothing. Sighted users cannot identify which community an icon represents without clicking it.",
+  "replay_recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7",
+  "status": "open",
+  "notes": null,
+  "discovered_at": "2026-06-12T23:30:25.272Z",
+  "test_run_id": "run-mqbjvgjo-hqml",
+  "sent_to_webhook": false,
+  "analysis": {
+    "chain": [
+      {
+        "text": "Because the only carrier of the community name is the aria-label (no visible text, no title, no tooltip component in the bundle), hovering an avatar shows nothing and the photo itself does not convey its topic. A sighted user must click each icon and observe the resulting view to learn which community it is, turning community navigation into trial-and-error.",
+        "evidence": [
+          {
+            "tool": "SearchSources",
+            "params": {
+              "pattern": "radix-tooltip|TooltipTrigger|TooltipContent|react-tooltip",
+              "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7",
+              "includeGenerated": true
+            },
+            "result": "",
+            "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+          }
+        ]
+      }
+    ],
+    "chronology": [
+      {
+        "text": "The Digg-clone feed finishes loading. The left sidebar shows the 'DIGG' wordmark, a search icon, and then a vertical column of circular photo avatars (community navigation). None of the avatars has any visible text label next to or beneath it.",
+        "evidence": [
+          {
+            "tool": "Screenshot",
+            "params": {
+              "timestamp": 13785,
+              "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+            },
+            "result": "Screenshot at timestamp 13785: https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-13785.jpg\nNext execution point: Point:5 @ 13814.50ms",
+            "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+          }
+        ],
+        "is_interaction": false,
+        "screenshot_url": "https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-13785.jpg"
+      },
+      {
+        "text": "Each avatar is a community link (the 8 buttons have aria-labels gaming, entertainment, finance, technology, music, science, oldweb, cozy), but the avatars are generic photos that do not visually communicate their topic, and there is no visible name and no hover tooltip, so a sighted user must click each icon to discover which community it is.",
+        "evidence": [
+          {
+            "tool": "Evaluate",
+            "params": {
+              "point": "Point:5",
+              "scope": "global",
+              "expression": "JSON.stringify((()=>{const labels=['gaming','entertainment','finance','technology','music','science','oldweb','cozy'];const btns=[...document.querySelectorAll('button')].filter(b=>labels.includes(b.getAttribute('aria-label')));return {count:btns.length,anyVisibleText:btns.some(b=>(b.textContent||'').trim().length>0),allNoTitle:btns.every(b=>!b.getAttribute('title')),allEmptyAlt:btns.every(b=>{const i=b.querySelector('img');return i&&(i.getAttribute('alt')||'')===''})};})())",
+              "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+            },
+            "result": "\"{\\\"count\\\":8,\\\"anyVisibleText\\\":false,\\\"allNoTitle\\\":true,\\\"allEmptyAlt\\\":true}\"",
+            "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+          }
+        ],
+        "is_interaction": false,
+        "screenshot_url": "https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-13785.jpg"
+      }
+    ],
+    "root_cause": {
+      "text": "Each community button (e.g. <button aria-label=\"gaming\" class=\"flex size-12 ... rounded-full\"><img alt=\"\" .../></button>) renders only a 48x48 avatar image: it has an aria-label but no visible text node, no title attribute, and the img alt is empty. The app provides no tooltip mechanism — the bundle contains Radix Popper (used only by the Select/dropdown) but no Tooltip component or tooltip library — so there is no hover affordance to surface the community name. The community name therefore exists only in the aria-label, which is invisible to sighted users.",
+      "evidence": [
+        {
+          "tool": "Evaluate",
+          "params": {
+            "point": "Point:5",
+            "scope": "global",
+            "expression": "JSON.stringify((()=>{const b=[...document.querySelectorAll('button')].find(x=>x.getAttribute('aria-label')==='finance');const i=b.querySelector('img');return {aria:b.getAttribute('aria-label'),title:b.getAttribute('title'),visibleText:(b.textContent||'').trim(),imgAlt:i.getAttribute('alt'),outer:b.outerHTML.substring(0,160)};})())",
+            "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+          },
+          "result": "\"{\\\"aria\\\":\\\"finance\\\",\\\"title\\\":null,\\\"visibleText\\\":\\\"\\\",\\\"imgAlt\\\":\\\"\\\",\\\"outer\\\":\\\"<button aria-label=\\\\\\\"finance\\\\\\\" class=\\\\\\\"flex size-12 items-center justify-center rounded-full bg-[#eef0f4] transition-all hover:scale-[1.03]\\\\\\\"><img alt=\\\\\\\"\\\\\\\" class=\\\\\\\"siz\\\"}\"",
+          "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+        }
+      ]
+    },
+    "buggy_behavior": "The left-sidebar community navigation is a column of photo avatars with no visible name and no hover tooltip, so a sighted user cannot tell which community (gaming, finance, science, etc.) each icon links to without clicking each one."
+  },
+  "judge_assessment": {
+    "approved": true,
+    "problems": [],
+    "assessment": "Evidence: Both screenshots show the Digg feed with a left sidebar containing circular photo avatars with no visible text labels, matching the chronology claims. The Evaluate evidence conclusively confirms all 8 community buttons have no visible text, no title attribute, and empty img alt attributes. The SearchSources evidence confirms no tooltip library exists. Every factual claim (8 buttons, size-12/48px, empty alt, null title, no tooltip component) is directly traceable to evidence results. This is a genuine UX problem — generic stock photos cannot convey abstract community topics like 'finance' or 'science,' forcing trial-and-error navigation. The fix (adding tooltips or visible labels) is concrete and actionable.\n\nRequirements: The screenshots show a left sidebar with a vertical column of circular photo avatars that serve as community navigation buttons. The Evaluate evidence confirms all 8 buttons have no visible text (anyVisibleText: false), no title attribute (allNoTitle: true), and empty img alt attributes (allEmptyAlt: true). The source search confirms no tooltip component exists in the codebase. This is a genuine UX problem: users must click each avatar through trial-and-error to discover which community it represents, as generic stock photos cannot convey topics like 'finance' or 'science'. The bug is well-documented with DOM evidence, matches the 'ambiguously labeled' and 'interactive elements that don't look interactive' categories in the guidelines, and includes a clear actionable recommendation to add visible labels or tooltips. This is not an accessibility-only issue — it affects all sighted users' ability to navigate.",
+    "judge_type": "requirements"
+  },
+  "judge_submissions": [
+    {
+      "result": {
+        "approved": true,
+        "problems": [],
+        "assessment": "Evidence: Both screenshots show the Digg feed with a left sidebar containing circular photo avatars with no visible text labels, matching the chronology claims. The Evaluate evidence conclusively confirms all 8 community buttons have no visible text, no title attribute, and empty img alt attributes. The SearchSources evidence confirms no tooltip library exists. Every factual claim (8 buttons, size-12/48px, empty alt, null title, no tooltip component) is directly traceable to evidence results. This is a genuine UX problem — generic stock photos cannot convey abstract community topics like 'finance' or 'science,' forcing trial-and-error navigation. The fix (adding tooltips or visible labels) is concrete and actionable.\n\nRequirements: The screenshots show a left sidebar with a vertical column of circular photo avatars that serve as community navigation buttons. The Evaluate evidence confirms all 8 buttons have no visible text (anyVisibleText: false), no title attribute (allNoTitle: true), and empty img alt attributes (allEmptyAlt: true). The source search confirms no tooltip component exists in the codebase. This is a genuine UX problem: users must click each avatar through trial-and-error to discover which community it represents, as generic stock photos cannot convey topics like 'finance' or 'science'. The bug is well-documented with DOM evidence, matches the 'ambiguously labeled' and 'interactive elements that don't look interactive' categories in the guidelines, and includes a clear actionable recommendation to add visible labels or tooltips. This is not an accessibility-only issue — it affects all sighted users' ability to navigate.",
+        "judge_type": "requirements"
+      },
+      "attempt": 1,
+      "submitted_at": "2026-06-12T23:30:25.079Z",
+      "submitted_data": {
+        "title": "Sidebar community navigation icons have no visible label or hover tooltip, so users can't tell which community each represents",
+        "analysis": {
+          "chain": [
+            {
+              "text": "Because the only carrier of the community name is the aria-label (no visible text, no title, no tooltip component in the bundle), hovering an avatar shows nothing and the photo itself does not convey its topic. A sighted user must click each icon and observe the resulting view to learn which community it is, turning community navigation into trial-and-error.",
+              "evidence": [
+                {
+                  "tool": "SearchSources",
+                  "params": {
+                    "pattern": "radix-tooltip|TooltipTrigger|TooltipContent|react-tooltip",
+                    "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7",
+                    "includeGenerated": true
+                  },
+                  "result": "",
+                  "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+                }
+              ]
+            }
+          ],
+          "chronology": [
+            {
+              "text": "The Digg-clone feed finishes loading. The left sidebar shows the 'DIGG' wordmark, a search icon, and then a vertical column of circular photo avatars (community navigation). None of the avatars has any visible text label next to or beneath it.",
+              "evidence": [
+                {
+                  "tool": "Screenshot",
+                  "params": {
+                    "timestamp": 13785,
+                    "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+                  },
+                  "result": "Screenshot at timestamp 13785: https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-13785.jpg\nNext execution point: Point:5 @ 13814.50ms",
+                  "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+                }
+              ],
+              "is_interaction": false,
+              "screenshot_url": "https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-13785.jpg"
+            },
+            {
+              "text": "Each avatar is a community link (the 8 buttons have aria-labels gaming, entertainment, finance, technology, music, science, oldweb, cozy), but the avatars are generic photos that do not visually communicate their topic, and there is no visible name and no hover tooltip, so a sighted user must click each icon to discover which community it is.",
+              "evidence": [
+                {
+                  "tool": "Evaluate",
+                  "params": {
+                    "point": "Point:5",
+                    "scope": "global",
+                    "expression": "JSON.stringify((()=>{const labels=['gaming','entertainment','finance','technology','music','science','oldweb','cozy'];const btns=[...document.querySelectorAll('button')].filter(b=>labels.includes(b.getAttribute('aria-label')));return {count:btns.length,anyVisibleText:btns.some(b=>(b.textContent||'').trim().length>0),allNoTitle:btns.every(b=>!b.getAttribute('title')),allEmptyAlt:btns.every(b=>{const i=b.querySelector('img');return i&&(i.getAttribute('alt')||'')===''})};})())",
+                    "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+                  },
+                  "result": "\"{\\\"count\\\":8,\\\"anyVisibleText\\\":false,\\\"allNoTitle\\\":true,\\\"allEmptyAlt\\\":true}\"",
+                  "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+                }
+              ],
+              "is_interaction": false,
+              "screenshot_url": "https://static.replay.io/recordings/d1875d77-8752-429b-b3ce-72f624da8bb7/analysis/screenshot-13785.jpg"
+            }
+          ],
+          "root_cause": {
+            "text": "Each community button (e.g. <button aria-label=\"gaming\" class=\"flex size-12 ... rounded-full\"><img alt=\"\" .../></button>) renders only a 48x48 avatar image: it has an aria-label but no visible text node, no title attribute, and the img alt is empty. The app provides no tooltip mechanism — the bundle contains Radix Popper (used only by the Select/dropdown) but no Tooltip component or tooltip library — so there is no hover affordance to surface the community name. The community name therefore exists only in the aria-label, which is invisible to sighted users.",
+            "evidence": [
+              {
+                "tool": "Evaluate",
+                "params": {
+                  "point": "Point:5",
+                  "scope": "global",
+                  "expression": "JSON.stringify((()=>{const b=[...document.querySelectorAll('button')].find(x=>x.getAttribute('aria-label')==='finance');const i=b.querySelector('img');return {aria:b.getAttribute('aria-label'),title:b.getAttribute('title'),visibleText:(b.textContent||'').trim(),imgAlt:i.getAttribute('alt'),outer:b.outerHTML.substring(0,160)};})())",
+                  "recordingId": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+                },
+                "result": "\"{\\\"aria\\\":\\\"finance\\\",\\\"title\\\":null,\\\"visibleText\\\":\\\"\\\",\\\"imgAlt\\\":\\\"\\\",\\\"outer\\\":\\\"<button aria-label=\\\\\\\"finance\\\\\\\" class=\\\\\\\"flex size-12 items-center justify-center rounded-full bg-[#eef0f4] transition-all hover:scale-[1.03]\\\\\\\"><img alt=\\\\\\\"\\\\\\\" class=\\\\\\\"siz\\\"}\"",
+                "recording_id": "d1875d77-8752-429b-b3ce-72f624da8bb7"
+              }
+            ]
+          },
+          "buggy_behavior": "The left-sidebar community navigation is a column of photo avatars with no visible name and no hover tooltip, so a sighted user cannot tell which community (gaming, finance, science, etc.) each icon links to without clicking each one."
+        },
+        "description": "The left sidebar shows a vertical column of community navigation buttons (aria-labels: gaming, entertainment, finance, technology, music, science, oldweb, cozy). Each is a 48x48 circular stock-photo avatar with an empty img alt, no visible text label, and no title/hover tooltip. The app bundles no tooltip component or tooltip library (only Radix Popper, which is used by the 'All Digg' Select), so hovering an icon reveals nothing. A sighted user therefore cannot tell which community any icon links to without clicking it and observing the result — forcing trial-and-error to navigate communities. The photos are generic and bear no inherent relationship to their topic (a photo cannot convey 'finance' or 'science'), so they are genuinely ambiguous rather than self-explanatory icons."
+      },
+      "evidence_result": {
+        "approved": true,
+        "problems": [],
+        "assessment": "Both screenshots show the Digg feed with a left sidebar containing circular photo avatars with no visible text labels, matching the chronology claims. The Evaluate evidence conclusively confirms all 8 community buttons have no visible text, no title attribute, and empty img alt attributes. The SearchSources evidence confirms no tooltip library exists. Every factual claim (8 buttons, size-12/48px, empty alt, null title, no tooltip component) is directly traceable to evidence results. This is a genuine UX problem — generic stock photos cannot convey abstract community topics like 'finance' or 'science,' forcing trial-and-error navigation. The fix (adding tooltips or visible labels) is concrete and actionable.",
+        "judge_type": "evidence"
+      },
+      "requirements_result": {
+        "approved": true,
+        "problems": [],
+        "assessment": "The screenshots show a left sidebar with a vertical column of circular photo avatars that serve as community navigation buttons. The Evaluate evidence confirms all 8 buttons have no visible text (anyVisibleText: false), no title attribute (allNoTitle: true), and empty img alt attributes (allEmptyAlt: true). The source search confirms no tooltip component exists in the codebase. This is a genuine UX problem: users must click each avatar through trial-and-error to discover which community it represents, as generic stock photos cannot convey topics like 'finance' or 'science'. The bug is well-documented with DOM evidence, matches the 'ambiguously labeled' and 'interactive elements that don't look interactive' categories in the guidelines, and includes a clear actionable recommendation to add visible labels or tooltips. This is not an accessibility-only issue — it affects all sighted users' ability to navigate.",
+        "judge_type": "requirements"
+      }
+    }
+  ],
+  "callback_url": null,
+  "polish_category": "user-experience",
+  "video_spec": null,
+  "video_url": null,
+  "guidance_deps": null,
+  "polish_pass_id": "pass-1781306565614-voo48zik",
+  "screenshot_spec": null,
+  "task_id": "task-1781306565614-a3knoo3d",
+  "project_name": "ExampleApps PR #8 - digg-clone",
+  "journey_id": "journey-mqbjvgc1-desg",
+  "journey_name": "Load the main page",
+  "test_run_replay_recording_ids": null,
+  "duplicates": []
+}

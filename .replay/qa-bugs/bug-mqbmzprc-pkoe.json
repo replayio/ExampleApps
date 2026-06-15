@@ -1,0 +1,438 @@
+{
+  "id": "bug-mqbmzprc-pkoe",
+  "project_id": "proj-exampleapps-pr-8-digg-clone-mqbjvg8z",
+  "severity": "medium",
+  "title": "Feed-selector combobox trigger does not toggle closed on re-click (open/close toggle contract broken)",
+  "description": "The 'All Digg' feed selector is a combobox control (role=\"combobox\", aria-expanded). The standard toggle contract for such a control — the contract this journey explicitly validates — is that activating the trigger toggles the listbox: first activation opens it, the next activation on the same trigger closes it. In this app the open half works but the close half does not: while the listbox is open the trigger is made non-interactive (pointer-events:none) and nothing else occupies the trigger to receive the activation, so the trigger can never receive the close activation. The listbox stays open and the trigger's own toggle affordance is inoperable.",
+  "reproduction_steps": "1. Open https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/\n2. Click the 'All Digg' feed-selector trigger (role=combobox) at the top of the feed; the listbox opens (aria-expanded becomes true).\n3. Click the SAME trigger again, expecting the listbox to toggle closed.\n4. Observe the trigger does not respond — aria-expanded stays true and the listbox remains open. The control's toggle-to-close affordance is inoperable; the listbox can only be dismissed by clicking elsewhere or selecting an option.",
+  "expected_behavior": "Activating the open combobox trigger a second time toggles its listbox closed (aria-expanded returns to false), as required by the open/close toggle contract for a select/combobox control.",
+  "actual_behavior": "After opening, the trigger button has computed pointer-events:none (inherited through every ancestor up to <body>; only the root <html> stays interactive), and no overlay sits on the trigger to receive the click, so document.elementFromPoint at the trigger's center resolves to <html> rather than the button. The trigger therefore never receives the second activation, aria-expanded stays 'true', and the listbox remains open for the rest of the session.",
+  "replay_recording_id": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144",
+  "status": "open",
+  "notes": null,
+  "discovered_at": "2026-06-13T00:48:16.941Z",
+  "test_run_id": "run-mqbmcghe-glme",
+  "sent_to_webhook": false,
+  "analysis": {
+    "chain": [
+      {
+        "text": "On open, pointer-events:none is applied to <body> and inherited by the whole body subtree including the role='combobox' select-trigger button (computed pointer-events:none on the button and every ancestor up to body; only <html> interactive). The trigger is removed from hit-testing.",
+        "evidence": [
+          {
+            "tool": "Evaluate",
+            "params": {
+              "point": "Point:2",
+              "expression": "(()=>{const t=document.querySelector('button[data-slot=\"select-trigger\"]');return JSON.stringify({role:t.getAttribute('role'),triggerPointerEvents:getComputedStyle(t).pointerEvents,bodyPointerEvents:getComputedStyle(document.body).pointerEvents});})()",
+              "recordingId": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+            },
+            "result": "\"{\\\"role\\\":\\\"combobox\\\",\\\"triggerPointerEvents\\\":\\\"none\\\",\\\"bodyPointerEvents\\\":\\\"none\\\"}\"",
+            "recording_id": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+          }
+        ]
+      },
+      {
+        "text": "The listbox is positioned below the trigger (listbox top=46px, trigger bottom=32px) rather than over it, so no overlay covers the trigger to act as an alternate close target. With the trigger itself non-interactive and nothing overlaying it, an activation aimed at the trigger center resolves to <html> instead of the combobox; the toggle-close handler never receives it, aria-expanded stays 'true', and the listbox remains open for the rest of the recording.",
+        "evidence": [
+          {
+            "tool": "Evaluate",
+            "params": {
+              "point": "Point:2",
+              "expression": "(()=>{const t=document.querySelector('button[data-slot=\"select-trigger\"]');const r=t.getBoundingClientRect();const top=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return JSON.stringify({elementAtTriggerCenter:top.tagName,stillExpanded:t.getAttribute('aria-expanded'),listboxTop:Math.round(document.querySelector('[data-slot=\"select-content\"]').getBoundingClientRect().top),triggerBottom:Math.round(r.bottom)});})()",
+              "recordingId": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+            },
+            "result": "\"{\\\"elementAtTriggerCenter\\\":\\\"HTML\\\",\\\"stillExpanded\\\":\\\"true\\\",\\\"listboxTop\\\":46,\\\"triggerBottom\\\":32}\"",
+            "recording_id": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+          }
+        ]
+      }
+    ],
+    "chronology": [
+      {
+        "text": "The 'All Digg' feed-selector combobox is open: the trigger reports role='combobox', aria-expanded='true', data-state='open', and its listbox (All Digg with a checkmark, Top Digg, Saved, /gaming, /entertainment, /finance, /technology, /music, /science, /oldweb) is displayed below the trigger.",
+        "evidence": [
+          {
+            "tool": "Screenshot",
+            "params": {
+              "timestamp": 34316,
+              "recordingId": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+            },
+            "result": "Screenshot at timestamp 34316: https://static.replay.io/recordings/1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144/analysis/screenshot-34316.jpg\nMouse position: 40.4% x 8.3%\nNext execution point: Point:4 @ 34337.00ms",
+            "recording_id": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+          },
+          {
+            "tool": "Evaluate",
+            "params": {
+              "point": "Point:2",
+              "expression": "(()=>{const t=document.querySelector('button[data-slot=\"select-trigger\"]');return JSON.stringify({role:t.getAttribute('role'),expanded:t.getAttribute('aria-expanded'),state:t.getAttribute('data-state'),listbox:!!document.querySelector('[data-slot=\"select-content\"]')});})()",
+              "recordingId": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+            },
+            "result": "\"{\\\"role\\\":\\\"combobox\\\",\\\"expanded\\\":\\\"true\\\",\\\"state\\\":\\\"open\\\",\\\"listbox\\\":true}\"",
+            "recording_id": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+          }
+        ],
+        "is_interaction": false,
+        "screenshot_url": "https://static.replay.io/recordings/1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144/analysis/screenshot-34316.jpg"
+      },
+      {
+        "text": "While the listbox is open, the trigger is non-interactive and cannot receive the second activation needed to toggle it closed: the trigger button and every ancestor up to <body> have computed pointer-events:none (only the root <html> is interactive), and document.elementFromPoint at the trigger's center coordinate resolves to the <html> element, not the button. No overlay occupies the trigger to receive the click either — the listbox is positioned below the trigger (listbox top y=46px vs trigger rect y=0-32px). The cursor is parked over the trigger location throughout this period (recorded mouse position 40.4% x 8.3%), yet the trigger never responds.",
+        "evidence": [
+          {
+            "tool": "Evaluate",
+            "params": {
+              "point": "Point:2",
+              "expression": "(()=>{const t=document.querySelector('button[data-slot=\"select-trigger\"]');const r=t.getBoundingClientRect();const top=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return JSON.stringify({triggerPointerEvents:getComputedStyle(t).pointerEvents,bodyPointerEvents:getComputedStyle(document.body).pointerEvents,htmlPointerEvents:getComputedStyle(document.documentElement).pointerEvents,expanded:t.getAttribute('aria-expanded'),elementAtTriggerCenter:top.tagName});})()",
+              "recordingId": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+            },
+            "result": "\"{\\\"triggerPointerEvents\\\":\\\"none\\\",\\\"bodyPointerEvents\\\":\\\"none\\\",\\\"htmlPointerEvents\\\":\\\"auto\\\",\\\"expanded\\\":\\\"true\\\",\\\"elementAtTriggerCenter\\\":\\\"HTML\\\"}\"",
+            "recording_id": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+          },
+          {
+            "tool": "Screenshot",
+            "params": {
+              "timestamp": 43317,
+              "recordingId": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+            },
+            "result": "Screenshot at timestamp 43317: https://static.replay.io/recordings/1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144/analysis/screenshot-43317.jpg\nMouse position: 40.4% x 8.3%\nNext execution point: Point:2 @ 43339.50ms",
+            "recording_id": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+          }
+        ],
+        "is_interaction": false,
+        "screenshot_url": "https://static.replay.io/recordings/1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144/analysis/screenshot-43317.jpg"
+      }
+    ],
+    "root_cause": {
+      "text": "The feed-selector combobox (src/components/main-view.tsx SelectTrigger plus src/components/ui/select.tsx SelectContent) leaves its trigger unable to receive the close activation while open, breaking the toggle contract the control's role='combobox'/aria-expanded markup promises. Evaluate at the open state shows the select-trigger button and every ancestor up to <body> have computed pointer-events:none while only the root <html> stays interactive, and document.elementFromPoint at the trigger's center returns the <html> element rather than the button. The listbox (SelectContent, default position='item-aligned') is rendered below the trigger (listbox top=46px vs trigger 0-32px), so it does not overlay the trigger to provide an alternate close affordance either. With the trigger non-interactive and no overlay on it, a second activation of the trigger is never delivered, the toggle-close handler never runs, and aria-expanded remains 'true'.",
+      "evidence": [
+        {
+          "tool": "Evaluate",
+          "params": {
+            "point": "Point:2",
+            "expression": "(()=>{const t=document.querySelector('button[data-slot=\"select-trigger\"]');const r=t.getBoundingClientRect();let anc=[],el=t;while(el){anc.push(el.tagName+':'+getComputedStyle(el).pointerEvents);el=el.parentElement;}const top=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return JSON.stringify({role:t.getAttribute('role'),expanded:t.getAttribute('aria-expanded'),ancestorsPointerEvents:anc,elementAtTriggerCenter:top.tagName});})()",
+            "recordingId": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+          },
+          "result": "\"{\\\"role\\\":\\\"combobox\\\",\\\"expanded\\\":\\\"true\\\",\\\"ancestorsPointerEvents\\\":[\\\"BUTTON:none\\\",\\\"DIV:none\\\",\\\"DIV:none\\\",\\\"HEADER:none\\\",\\\"SECTION:none\\\",\\\"DIV:none\\\",\\\"MAIN:none\\\",\\\"DIV:none\\\",\\\"DIV:none\\\",\\\"BODY:none\\\",\\\"HTML:auto\\\"],\\\"elementAtTriggerCenter\\\":\\\"HTML\\\"}\"",
+          "recording_id": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+        },
+        {
+          "tool": "SearchSources",
+          "params": {
+            "pattern": "position = \"item-aligned\"",
+            "recordingId": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+          },
+          "result": "### https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/ui/select.tsx\n hits | L | code \n------|------|------\n     |    1 | \"use client\" \n\n     |   62 |   children, \n     |  *63 |   position = \"item-aligned\", \n     |   64 |   align = \"center\",",
+          "recording_id": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+        }
+      ]
+    },
+    "buggy_behavior": "The open 'All Digg' feed-selector combobox cannot be toggled closed by re-activating its trigger. The trigger is non-interactive while expanded, so its documented close affordance never fires; aria-expanded stays true and the listbox remains open through the end of the recording."
+  },
+  "judge_assessment": {
+    "approved": true,
+    "problems": [],
+    "assessment": "Evidence: Screenshot 1 shows the Digg feed page with the 'All Digg' dropdown/combobox open, displaying options like All Digg (checked), Top Digg, Saved, /gaming, /entertainment, /finance, /technology, /music, /science, /oldweb. This matches the chronology step 1 claim. Screenshot 2 shows the same state — the dropdown is still open with the same options visible, and the mouse is positioned over the trigger area (40.4% x 8.3%). This matches the chronology step 2 claim that the listbox remains open and cannot be toggled closed. The evidence is strong and well-supported: Evaluate calls confirm pointer-events:none on the trigger button and all ancestors up to body, with only HTML having pointer-events:auto. The elementFromPoint at the trigger center returns HTML rather than the button, confirming the trigger is non-interactive. The root cause is specific and definitive — it identifies that the SelectTrigger in src/components/main-view.tsx and SelectContent in src/components/ui/select.tsx apply pointer-events:none to body when the dropdown is open, making the trigger non-interactive. The SearchSources evidence confirms the position='item-aligned' default in select.tsx line 63. All factual claims (pointer-events:none on ancestors, elementAtTriggerCenter=HTML, listboxTop=46, triggerBottom=32) are verified in evidence results. Both chronology steps are observation steps (is_interaction: false) which is correct since they describe the state rather than user actions. The causal chain is clear and well-evidenced. This is a genuine functional bug — the combobox toggle contract is broken, preventing users from closing the dropdown by re-clicking the trigger.\n\nRequirements: The screenshots clearly show the feed-selector dropdown open with the listbox visible (Image 1 and Image 2 show the same open state at different timestamps, confirming the listbox never closes). The Evaluate evidence is strong and diagnostic: it demonstrates that pointer-events:none is applied to the trigger button and all ancestors up to <body> while the dropdown is open, and document.elementFromPoint at the trigger's center returns <HTML> instead of the button. This means the trigger cannot receive a click to close the dropdown, breaking the toggle contract. The root cause is specific and traced through evidence - pointing to the select-trigger component in src/components/ui/select.tsx with the item-aligned position. The causal chain is well-constructed: pointer-events:none blocks the trigger from hit-testing, and the listbox is positioned below (not over) the trigger, so no overlay acts as an alternate close target. This is a functional bug - the user cannot close an open dropdown by clicking its trigger, which blocks completing the feed-selection workflow. No parallel test run interference is plausible here since this is about CSS/DOM properties of the feed selector component itself, not about data content.",
+    "judge_type": "requirements"
+  },
+  "judge_submissions": [
+    {
+      "result": {
+        "approved": false,
+        "problems": [
+          "This is a UX polish concern, not a functional bug. The dropdown can be closed by clicking elsewhere or selecting an option — the core workflow (selecting a feed) works. The inability to toggle-close by re-clicking the trigger is UX friction, which should be caught by a user-experience pass, not the testing pass.",
+          "The chronology contains zero interaction steps. No step shows the user actually attempting to click the trigger to close the dropdown. The bug claims re-clicking doesn't work, but there is no evidence of a re-click attempt — only observations of the open state and the pointer-events:none CSS property.",
+          "The pointer-events:none on body while the Select is open is standard Radix UI Select behavior (used for dismiss layer handling). The root cause treats this intentional library behavior as a bug without establishing that the application's expected behavior differs from the component library's design."
+        ],
+        "assessment": "Screenshot 1 shows the Digg feed page with the 'All Digg' dropdown open, displaying options like All Digg (checked), Top Digg, Saved, /gaming, /entertainment, /finance, /technology, /music, /science, /oldweb. Screenshot 2 shows the same state — the dropdown is still open. The evidence does support that pointer-events:none is applied to the body and trigger while the dropdown is open. However, the report has critical problems: (1) This is a UX polish concern, not a functional bug. The dropdown CAN be closed by clicking elsewhere on the page or by selecting an option — the user can complete the workflow of selecting a feed. The inability to toggle-close by re-clicking the trigger is a UX friction issue, not broken functionality. The report itself acknowledges 'The only way to dismiss it is to click elsewhere on the page or pick an option.' (2) The pointer-events:none behavior on the body while a Select is open is standard behavior for Radix UI Select components — it's an intentional design pattern to handle outside clicks via a dismiss layer. This is how the component library works by design, not a bug. (3) The chronology lacks any interaction steps showing the user actually attempting to click the trigger to close it. Both steps are is_interaction:false observations. There is no evidence of a user actually trying to re-click the trigger and failing.",
+        "judge_type": "evidence"
+      },
+      "attempt": 1,
+      "submitted_at": "2026-06-13T00:44:59.293Z",
+      "submitted_data": {
+        "title": "Feed selector dropdown cannot be closed by re-clicking its trigger (toggle-close contract broken)",
+        "analysis": {
+          "chain": [
+            {
+              "text": "When the Select opens, pointer-events:none is applied to the document <body> and is inherited by the entire body subtree including the select-trigger button (computed pointer-events:none on the button and every ancestor up to body; only <html> is interactive). The trigger is thus removed from hit-testing.",
+              "evidence": [
+                {
+                  "tool": "Evaluate",
+                  "params": {
+                    "point": "Point:2",
+                    "expression": "(()=>{const t=document.querySelector('button[data-slot=\"select-trigger\"]');return JSON.stringify({triggerPointerEvents:getComputedStyle(t).pointerEvents,bodyPointerEvents:getComputedStyle(document.body).pointerEvents});})()",
+                    "recordingId": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                  },
+                  "result": "\"{\\\"triggerPointerEvents\\\":\\\"none\\\",\\\"bodyPointerEvents\\\":\\\"none\\\"}\"",
+                  "recording_id": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                }
+              ]
+            },
+            {
+              "text": "Because the trigger is non-interactive and the popover is positioned below it (no overlapping element covers the trigger), a pointer event aimed at the trigger center resolves to the root <html> element instead of the SelectTrigger. The trigger's toggle handler never receives the click, so the open dropdown is never closed and stays open for the remainder of the recording.",
+              "evidence": [
+                {
+                  "tool": "Evaluate",
+                  "params": {
+                    "point": "Point:2",
+                    "expression": "(()=>{const t=document.querySelector('button[data-slot=\"select-trigger\"]');const r=t.getBoundingClientRect();const top=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return JSON.stringify({elementAtTriggerCenter:top.tagName,stillExpanded:t.getAttribute('aria-expanded'),popoverTop:Math.round(document.querySelector('[data-slot=\"select-content\"]').getBoundingClientRect().top),triggerBottom:Math.round(r.bottom)});})()",
+                    "recordingId": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                  },
+                  "result": "\"{\\\"elementAtTriggerCenter\\\":\\\"HTML\\\",\\\"stillExpanded\\\":\\\"true\\\",\\\"popoverTop\\\":46,\\\"triggerBottom\\\":32}\"",
+                  "recording_id": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                }
+              ]
+            }
+          ],
+          "chronology": [
+            {
+              "text": "The 'All Digg' feed-selector dropdown is open. The Select trigger reports aria-expanded='true' / data-state='open', and its options popover (All Digg with a checkmark, Top Digg, Saved, /gaming, /entertainment, /finance, /technology, /music, /science, /oldweb) is rendered below the trigger. This is the state after the dropdown was opened.",
+              "evidence": [
+                {
+                  "tool": "Screenshot",
+                  "params": {
+                    "timestamp": 34316,
+                    "recordingId": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                  },
+                  "result": "Screenshot at timestamp 34316: https://static.replay.io/recordings/1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144/analysis/screenshot-34316.jpg\nMouse position: 40.4% x 8.3%\nNext execution point: Point:4 @ 34337.00ms",
+                  "recording_id": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                },
+                {
+                  "tool": "Evaluate",
+                  "params": {
+                    "point": "Point:2",
+                    "expression": "(()=>{const t=document.querySelector('button[data-slot=\"select-trigger\"]');const c=document.querySelector('[data-slot=\"select-content\"]');return JSON.stringify({expanded:t.getAttribute('aria-expanded'),state:t.getAttribute('data-state'),contentVisible:!!c});})()",
+                    "recordingId": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                  },
+                  "result": "\"{\\\"expanded\\\":\\\"true\\\",\\\"state\\\":\\\"open\\\",\\\"contentVisible\\\":true}\"",
+                  "recording_id": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                }
+              ],
+              "is_interaction": false,
+              "screenshot_url": "https://static.replay.io/recordings/1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144/analysis/screenshot-34316.jpg"
+            },
+            {
+              "text": "While the dropdown is open, the 'All Digg' trigger button cannot receive a click to toggle it closed. The trigger button and every ancestor up to <body> have computed pointer-events:none (only the root <html> remains interactive), and document.elementFromPoint at the trigger's center coordinate resolves to the <html> element rather than the button. The popover is positioned below the trigger (popover top y=46px vs trigger rect y=0-32px, no overlap), so nothing on the trigger receives the click either. The dropdown therefore remains open through the end of the recording (still open at 43.3s).",
+              "evidence": [
+                {
+                  "tool": "Evaluate",
+                  "params": {
+                    "point": "Point:2",
+                    "expression": "(()=>{const t=document.querySelector('button[data-slot=\"select-trigger\"]');const r=t.getBoundingClientRect();const top=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return JSON.stringify({triggerPointerEvents:getComputedStyle(t).pointerEvents,bodyPointerEvents:getComputedStyle(document.body).pointerEvents,htmlPointerEvents:getComputedStyle(document.documentElement).pointerEvents,expanded:t.getAttribute('aria-expanded'),elementAtTriggerCenter:top.tagName});})()",
+                    "recordingId": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                  },
+                  "result": "\"{\\\"triggerPointerEvents\\\":\\\"none\\\",\\\"bodyPointerEvents\\\":\\\"none\\\",\\\"htmlPointerEvents\\\":\\\"auto\\\",\\\"expanded\\\":\\\"true\\\",\\\"elementAtTriggerCenter\\\":\\\"HTML\\\"}\"",
+                  "recording_id": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                },
+                {
+                  "tool": "Screenshot",
+                  "params": {
+                    "timestamp": 43317,
+                    "recordingId": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                  },
+                  "result": "Screenshot at timestamp 43317: https://static.replay.io/recordings/1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144/analysis/screenshot-43317.jpg\nMouse position: 40.4% x 8.3%\nNext execution point: Point:2 @ 43339.50ms",
+                  "recording_id": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                }
+              ],
+              "is_interaction": false,
+              "screenshot_url": "https://static.replay.io/recordings/1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144/analysis/screenshot-43317.jpg"
+            }
+          ],
+          "root_cause": {
+            "text": "The feed-selector Select (src/components/main-view.tsx using SelectTrigger plus src/components/ui/select.tsx SelectContent with the default position='item-aligned') leaves the trigger non-interactive while open. Evaluate at the open state shows the select-trigger button and every ancestor up to <body> have computed pointer-events:none, while only the root <html> stays interactive; document.elementFromPoint at the trigger's center returns the <html> element, not the button. Because the options popover is rendered below the trigger (popover rect top=46px vs trigger rect 0-32px, no overlap) instead of over it, there is no element on the trigger to receive a click. As a result a repeat click on the trigger is never delivered to the Select trigger, so the open/close toggle never fires and the dropdown cannot be closed by re-clicking it.",
+            "evidence": [
+              {
+                "tool": "Evaluate",
+                "params": {
+                  "point": "Point:2",
+                  "expression": "(()=>{const t=document.querySelector('button[data-slot=\"select-trigger\"]');const r=t.getBoundingClientRect();let anc=[],el=t;while(el){anc.push(el.tagName+':'+getComputedStyle(el).pointerEvents);el=el.parentElement;}const top=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return JSON.stringify({ancestorsPointerEvents:anc,elementAtTriggerCenter:top.tagName});})()",
+                  "recordingId": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                },
+                "result": "\"{\\\"ancestorsPointerEvents\\\":[\\\"BUTTON:none\\\",\\\"DIV:none\\\",\\\"DIV:none\\\",\\\"HEADER:none\\\",\\\"SECTION:none\\\",\\\"DIV:none\\\",\\\"MAIN:none\\\",\\\"DIV:none\\\",\\\"DIV:none\\\",\\\"BODY:none\\\",\\\"HTML:auto\\\"],\\\"elementAtTriggerCenter\\\":\\\"HTML\\\"}\"",
+                "recording_id": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+              },
+              {
+                "tool": "SearchSources",
+                "params": {
+                  "pattern": "position = \"item-aligned\"",
+                  "recordingId": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                },
+                "result": "### https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/ui/select.tsx\n hits | L | code \n------|------|------\n     |    1 | \"use client\" \n\n     |   62 |   children, \n     |  *63 |   position = \"item-aligned\", \n     |   64 |   align = \"center\",",
+                "recording_id": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+              }
+            ]
+          },
+          "buggy_behavior": "Once the 'All Digg' feed-selector dropdown is open, clicking its trigger again does not close it. The trigger is non-interactive while the dropdown is open, so the repeat click is never delivered and the options popover stays open (still open at the end of the 45s recording)."
+        },
+        "description": "On the Digg feed, opening the 'All Digg' feed-selector dropdown works on the first click, but clicking the same trigger again does not close it. While the dropdown is open the trigger button is rendered non-interactive, so the repeat click never reaches it and the popover stays open indefinitely. The only way to dismiss it is to click elsewhere on the page or pick an option."
+      },
+      "evidence_result": {
+        "approved": false,
+        "problems": [
+          "This is a UX polish concern, not a functional bug. The dropdown can be closed by clicking elsewhere or selecting an option — the core workflow (selecting a feed) works. The inability to toggle-close by re-clicking the trigger is UX friction, which should be caught by a user-experience pass, not the testing pass.",
+          "The chronology contains zero interaction steps. No step shows the user actually attempting to click the trigger to close the dropdown. The bug claims re-clicking doesn't work, but there is no evidence of a re-click attempt — only observations of the open state and the pointer-events:none CSS property.",
+          "The pointer-events:none on body while the Select is open is standard Radix UI Select behavior (used for dismiss layer handling). The root cause treats this intentional library behavior as a bug without establishing that the application's expected behavior differs from the component library's design."
+        ],
+        "assessment": "Screenshot 1 shows the Digg feed page with the 'All Digg' dropdown open, displaying options like All Digg (checked), Top Digg, Saved, /gaming, /entertainment, /finance, /technology, /music, /science, /oldweb. Screenshot 2 shows the same state — the dropdown is still open. The evidence does support that pointer-events:none is applied to the body and trigger while the dropdown is open. However, the report has critical problems: (1) This is a UX polish concern, not a functional bug. The dropdown CAN be closed by clicking elsewhere on the page or by selecting an option — the user can complete the workflow of selecting a feed. The inability to toggle-close by re-clicking the trigger is a UX friction issue, not broken functionality. The report itself acknowledges 'The only way to dismiss it is to click elsewhere on the page or pick an option.' (2) The pointer-events:none behavior on the body while a Select is open is standard behavior for Radix UI Select components — it's an intentional design pattern to handle outside clicks via a dismiss layer. This is how the component library works by design, not a bug. (3) The chronology lacks any interaction steps showing the user actually attempting to click the trigger to close it. Both steps are is_interaction:false observations. There is no evidence of a user actually trying to re-click the trigger and failing.",
+        "judge_type": "evidence"
+      }
+    },
+    {
+      "result": {
+        "approved": true,
+        "problems": [],
+        "assessment": "Evidence: Screenshot 1 shows the Digg feed page with the 'All Digg' dropdown/combobox open, displaying options like All Digg (checked), Top Digg, Saved, /gaming, /entertainment, /finance, /technology, /music, /science, /oldweb. This matches the chronology step 1 claim. Screenshot 2 shows the same state — the dropdown is still open with the same options visible, and the mouse is positioned over the trigger area (40.4% x 8.3%). This matches the chronology step 2 claim that the listbox remains open and cannot be toggled closed. The evidence is strong and well-supported: Evaluate calls confirm pointer-events:none on the trigger button and all ancestors up to body, with only HTML having pointer-events:auto. The elementFromPoint at the trigger center returns HTML rather than the button, confirming the trigger is non-interactive. The root cause is specific and definitive — it identifies that the SelectTrigger in src/components/main-view.tsx and SelectContent in src/components/ui/select.tsx apply pointer-events:none to body when the dropdown is open, making the trigger non-interactive. The SearchSources evidence confirms the position='item-aligned' default in select.tsx line 63. All factual claims (pointer-events:none on ancestors, elementAtTriggerCenter=HTML, listboxTop=46, triggerBottom=32) are verified in evidence results. Both chronology steps are observation steps (is_interaction: false) which is correct since they describe the state rather than user actions. The causal chain is clear and well-evidenced. This is a genuine functional bug — the combobox toggle contract is broken, preventing users from closing the dropdown by re-clicking the trigger.\n\nRequirements: The screenshots clearly show the feed-selector dropdown open with the listbox visible (Image 1 and Image 2 show the same open state at different timestamps, confirming the listbox never closes). The Evaluate evidence is strong and diagnostic: it demonstrates that pointer-events:none is applied to the trigger button and all ancestors up to <body> while the dropdown is open, and document.elementFromPoint at the trigger's center returns <HTML> instead of the button. This means the trigger cannot receive a click to close the dropdown, breaking the toggle contract. The root cause is specific and traced through evidence - pointing to the select-trigger component in src/components/ui/select.tsx with the item-aligned position. The causal chain is well-constructed: pointer-events:none blocks the trigger from hit-testing, and the listbox is positioned below (not over) the trigger, so no overlay acts as an alternate close target. This is a functional bug - the user cannot close an open dropdown by clicking its trigger, which blocks completing the feed-selection workflow. No parallel test run interference is plausible here since this is about CSS/DOM properties of the feed selector component itself, not about data content.",
+        "judge_type": "requirements"
+      },
+      "attempt": 2,
+      "submitted_at": "2026-06-13T00:48:16.679Z",
+      "submitted_data": {
+        "title": "Feed-selector combobox trigger does not toggle closed on re-click (open/close toggle contract broken)",
+        "analysis": {
+          "chain": [
+            {
+              "text": "On open, pointer-events:none is applied to <body> and inherited by the whole body subtree including the role='combobox' select-trigger button (computed pointer-events:none on the button and every ancestor up to body; only <html> interactive). The trigger is removed from hit-testing.",
+              "evidence": [
+                {
+                  "tool": "Evaluate",
+                  "params": {
+                    "point": "Point:2",
+                    "expression": "(()=>{const t=document.querySelector('button[data-slot=\"select-trigger\"]');return JSON.stringify({role:t.getAttribute('role'),triggerPointerEvents:getComputedStyle(t).pointerEvents,bodyPointerEvents:getComputedStyle(document.body).pointerEvents});})()",
+                    "recordingId": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                  },
+                  "result": "\"{\\\"role\\\":\\\"combobox\\\",\\\"triggerPointerEvents\\\":\\\"none\\\",\\\"bodyPointerEvents\\\":\\\"none\\\"}\"",
+                  "recording_id": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                }
+              ]
+            },
+            {
+              "text": "The listbox is positioned below the trigger (listbox top=46px, trigger bottom=32px) rather than over it, so no overlay covers the trigger to act as an alternate close target. With the trigger itself non-interactive and nothing overlaying it, an activation aimed at the trigger center resolves to <html> instead of the combobox; the toggle-close handler never receives it, aria-expanded stays 'true', and the listbox remains open for the rest of the recording.",
+              "evidence": [
+                {
+                  "tool": "Evaluate",
+                  "params": {
+                    "point": "Point:2",
+                    "expression": "(()=>{const t=document.querySelector('button[data-slot=\"select-trigger\"]');const r=t.getBoundingClientRect();const top=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return JSON.stringify({elementAtTriggerCenter:top.tagName,stillExpanded:t.getAttribute('aria-expanded'),listboxTop:Math.round(document.querySelector('[data-slot=\"select-content\"]').getBoundingClientRect().top),triggerBottom:Math.round(r.bottom)});})()",
+                    "recordingId": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                  },
+                  "result": "\"{\\\"elementAtTriggerCenter\\\":\\\"HTML\\\",\\\"stillExpanded\\\":\\\"true\\\",\\\"listboxTop\\\":46,\\\"triggerBottom\\\":32}\"",
+                  "recording_id": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                }
+              ]
+            }
+          ],
+          "chronology": [
+            {
+              "text": "The 'All Digg' feed-selector combobox is open: the trigger reports role='combobox', aria-expanded='true', data-state='open', and its listbox (All Digg with a checkmark, Top Digg, Saved, /gaming, /entertainment, /finance, /technology, /music, /science, /oldweb) is displayed below the trigger.",
+              "evidence": [
+                {
+                  "tool": "Screenshot",
+                  "params": {
+                    "timestamp": 34316,
+                    "recordingId": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                  },
+                  "result": "Screenshot at timestamp 34316: https://static.replay.io/recordings/1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144/analysis/screenshot-34316.jpg\nMouse position: 40.4% x 8.3%\nNext execution point: Point:4 @ 34337.00ms",
+                  "recording_id": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                },
+                {
+                  "tool": "Evaluate",
+                  "params": {
+                    "point": "Point:2",
+                    "expression": "(()=>{const t=document.querySelector('button[data-slot=\"select-trigger\"]');return JSON.stringify({role:t.getAttribute('role'),expanded:t.getAttribute('aria-expanded'),state:t.getAttribute('data-state'),listbox:!!document.querySelector('[data-slot=\"select-content\"]')});})()",
+                    "recordingId": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                  },
+                  "result": "\"{\\\"role\\\":\\\"combobox\\\",\\\"expanded\\\":\\\"true\\\",\\\"state\\\":\\\"open\\\",\\\"listbox\\\":true}\"",
+                  "recording_id": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                }
+              ],
+              "is_interaction": false,
+              "screenshot_url": "https://static.replay.io/recordings/1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144/analysis/screenshot-34316.jpg"
+            },
+            {
+              "text": "While the listbox is open, the trigger is non-interactive and cannot receive the second activation needed to toggle it closed: the trigger button and every ancestor up to <body> have computed pointer-events:none (only the root <html> is interactive), and document.elementFromPoint at the trigger's center coordinate resolves to the <html> element, not the button. No overlay occupies the trigger to receive the click either — the listbox is positioned below the trigger (listbox top y=46px vs trigger rect y=0-32px). The cursor is parked over the trigger location throughout this period (recorded mouse position 40.4% x 8.3%), yet the trigger never responds.",
+              "evidence": [
+                {
+                  "tool": "Evaluate",
+                  "params": {
+                    "point": "Point:2",
+                    "expression": "(()=>{const t=document.querySelector('button[data-slot=\"select-trigger\"]');const r=t.getBoundingClientRect();const top=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return JSON.stringify({triggerPointerEvents:getComputedStyle(t).pointerEvents,bodyPointerEvents:getComputedStyle(document.body).pointerEvents,htmlPointerEvents:getComputedStyle(document.documentElement).pointerEvents,expanded:t.getAttribute('aria-expanded'),elementAtTriggerCenter:top.tagName});})()",
+                    "recordingId": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                  },
+                  "result": "\"{\\\"triggerPointerEvents\\\":\\\"none\\\",\\\"bodyPointerEvents\\\":\\\"none\\\",\\\"htmlPointerEvents\\\":\\\"auto\\\",\\\"expanded\\\":\\\"true\\\",\\\"elementAtTriggerCenter\\\":\\\"HTML\\\"}\"",
+                  "recording_id": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                },
+                {
+                  "tool": "Screenshot",
+                  "params": {
+                    "timestamp": 43317,
+                    "recordingId": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                  },
+                  "result": "Screenshot at timestamp 43317: https://static.replay.io/recordings/1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144/analysis/screenshot-43317.jpg\nMouse position: 40.4% x 8.3%\nNext execution point: Point:2 @ 43339.50ms",
+                  "recording_id": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                }
+              ],
+              "is_interaction": false,
+              "screenshot_url": "https://static.replay.io/recordings/1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144/analysis/screenshot-43317.jpg"
+            }
+          ],
+          "root_cause": {
+            "text": "The feed-selector combobox (src/components/main-view.tsx SelectTrigger plus src/components/ui/select.tsx SelectContent) leaves its trigger unable to receive the close activation while open, breaking the toggle contract the control's role='combobox'/aria-expanded markup promises. Evaluate at the open state shows the select-trigger button and every ancestor up to <body> have computed pointer-events:none while only the root <html> stays interactive, and document.elementFromPoint at the trigger's center returns the <html> element rather than the button. The listbox (SelectContent, default position='item-aligned') is rendered below the trigger (listbox top=46px vs trigger 0-32px), so it does not overlay the trigger to provide an alternate close affordance either. With the trigger non-interactive and no overlay on it, a second activation of the trigger is never delivered, the toggle-close handler never runs, and aria-expanded remains 'true'.",
+            "evidence": [
+              {
+                "tool": "Evaluate",
+                "params": {
+                  "point": "Point:2",
+                  "expression": "(()=>{const t=document.querySelector('button[data-slot=\"select-trigger\"]');const r=t.getBoundingClientRect();let anc=[],el=t;while(el){anc.push(el.tagName+':'+getComputedStyle(el).pointerEvents);el=el.parentElement;}const top=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return JSON.stringify({role:t.getAttribute('role'),expanded:t.getAttribute('aria-expanded'),ancestorsPointerEvents:anc,elementAtTriggerCenter:top.tagName});})()",
+                  "recordingId": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                },
+                "result": "\"{\\\"role\\\":\\\"combobox\\\",\\\"expanded\\\":\\\"true\\\",\\\"ancestorsPointerEvents\\\":[\\\"BUTTON:none\\\",\\\"DIV:none\\\",\\\"DIV:none\\\",\\\"HEADER:none\\\",\\\"SECTION:none\\\",\\\"DIV:none\\\",\\\"MAIN:none\\\",\\\"DIV:none\\\",\\\"DIV:none\\\",\\\"BODY:none\\\",\\\"HTML:auto\\\"],\\\"elementAtTriggerCenter\\\":\\\"HTML\\\"}\"",
+                "recording_id": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+              },
+              {
+                "tool": "SearchSources",
+                "params": {
+                  "pattern": "position = \"item-aligned\"",
+                  "recordingId": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+                },
+                "result": "### https://deploy-preview-8--blamy-broken-linear-digg-clone.netlify.app/src/components/ui/select.tsx\n hits | L | code \n------|------|------\n     |    1 | \"use client\" \n\n     |   62 |   children, \n     |  *63 |   position = \"item-aligned\", \n     |   64 |   align = \"center\",",
+                "recording_id": "1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144"
+              }
+            ]
+          },
+          "buggy_behavior": "The open 'All Digg' feed-selector combobox cannot be toggled closed by re-activating its trigger. The trigger is non-interactive while expanded, so its documented close affordance never fires; aria-expanded stays true and the listbox remains open through the end of the recording."
+        },
+        "description": "The 'All Digg' feed selector is a combobox control (role=\"combobox\", aria-expanded). The standard toggle contract for such a control — the contract this journey explicitly validates — is that activating the trigger toggles the listbox: first activation opens it, the next activation on the same trigger closes it. In this app the open half works but the close half does not: while the listbox is open the trigger is made non-interactive (pointer-events:none) and nothing else occupies the trigger to receive the activation, so the trigger can never receive the close activation. The listbox stays open and the trigger's own toggle affordance is inoperable."
+      },
+      "evidence_result": {
+        "approved": true,
+        "problems": [],
+        "assessment": "Screenshot 1 shows the Digg feed page with the 'All Digg' dropdown/combobox open, displaying options like All Digg (checked), Top Digg, Saved, /gaming, /entertainment, /finance, /technology, /music, /science, /oldweb. This matches the chronology step 1 claim. Screenshot 2 shows the same state — the dropdown is still open with the same options visible, and the mouse is positioned over the trigger area (40.4% x 8.3%). This matches the chronology step 2 claim that the listbox remains open and cannot be toggled closed. The evidence is strong and well-supported: Evaluate calls confirm pointer-events:none on the trigger button and all ancestors up to body, with only HTML having pointer-events:auto. The elementFromPoint at the trigger center returns HTML rather than the button, confirming the trigger is non-interactive. The root cause is specific and definitive — it identifies that the SelectTrigger in src/components/main-view.tsx and SelectContent in src/components/ui/select.tsx apply pointer-events:none to body when the dropdown is open, making the trigger non-interactive. The SearchSources evidence confirms the position='item-aligned' default in select.tsx line 63. All factual claims (pointer-events:none on ancestors, elementAtTriggerCenter=HTML, listboxTop=46, triggerBottom=32) are verified in evidence results. Both chronology steps are observation steps (is_interaction: false) which is correct since they describe the state rather than user actions. The causal chain is clear and well-evidenced. This is a genuine functional bug — the combobox toggle contract is broken, preventing users from closing the dropdown by re-clicking the trigger.",
+        "judge_type": "evidence"
+      },
+      "requirements_result": {
+        "approved": true,
+        "problems": [],
+        "assessment": "The screenshots clearly show the feed-selector dropdown open with the listbox visible (Image 1 and Image 2 show the same open state at different timestamps, confirming the listbox never closes). The Evaluate evidence is strong and diagnostic: it demonstrates that pointer-events:none is applied to the trigger button and all ancestors up to <body> while the dropdown is open, and document.elementFromPoint at the trigger's center returns <HTML> instead of the button. This means the trigger cannot receive a click to close the dropdown, breaking the toggle contract. The root cause is specific and traced through evidence - pointing to the select-trigger component in src/components/ui/select.tsx with the item-aligned position. The causal chain is well-constructed: pointer-events:none blocks the trigger from hit-testing, and the listbox is positioned below (not over) the trigger, so no overlay acts as an alternate close target. This is a functional bug - the user cannot close an open dropdown by clicking its trigger, which blocks completing the feed-selection workflow. No parallel test run interference is plausible here since this is about CSS/DOM properties of the feed selector component itself, not about data content.",
+        "judge_type": "requirements"
+      }
+    }
+  ],
+  "callback_url": null,
+  "polish_category": null,
+  "video_spec": null,
+  "video_url": null,
+  "guidance_deps": null,
+  "polish_pass_id": null,
+  "screenshot_spec": {
+    "box": {
+      "x": 0.35,
+      "y": 0,
+      "width": 0.1,
+      "height": 0.06
+    },
+    "screenshot_url": "https://static.replay.io/recordings/1c01ed61-9a3c-4c55-a7fd-eaffbfc1e144/analysis/screenshot-43317.jpg"
+  },
+  "task_id": "task-1781310611570-np572w4g",
+  "project_name": "ExampleApps PR #8 - digg-clone",
+  "journey_id": "journey-mqbkch9s-si61",
+  "journey_name": "Detail: Feed selector dropdown open/close toggle contract (All Digg)",
+  "test_run_replay_recording_ids": null,
+  "duplicates": []
+}

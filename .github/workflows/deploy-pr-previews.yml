@@ -45,8 +45,8 @@ jobs:
         run: |
           node tools/netlify/deploy-affected.mjs \
             --mode preview \
-            --base "origin/${{ github.base_ref }}" \
-            --head HEAD \
+            --base "${{ github.event.pull_request.base.sha }}" \
+            --head "${{ github.event.pull_request.head.sha }}" \
             --pr "${{ github.event.pull_request.number }}"
 
       - name: Run Replay QA on deployed previews

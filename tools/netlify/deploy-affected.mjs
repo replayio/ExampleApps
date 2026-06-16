@@ -82,14 +82,51 @@ function isZeroSha(value) {
   return Boolean(value) && /^0+$/.test(value)
 }
 
+function revExists(ref) {
+  return run("git", ["rev-parse", "--verify", "--quiet", `${ref}^{commit}`], {
+    capture: true,
+    allowFailure: true,
+  }).ok
+}
+
+// Make sure `ref` resolves to a commit locally. In CI, shallow/partial fetches
+// often leave the base branch's remote-tracking ref (e.g. origin/main) absent,
+// which previously made the diff fail and fall back to deploying every app.
+function ensureRef(ref) {
+  if (!ref || isZeroSha(ref) || revExists(ref)) return revExists(ref)
+  const remoteCandidates = [ref]
+  // origin/<branch> -> fetch <branch>; bare <branch> -> fetch <branch>
+  const branch = ref.replace(/^origin\//, "")
+  console.log(`Base ref "${ref}" not present locally; attempting to fetch it.`)
+  for (const target of [branch, ...remoteCandidates]) {
+    run("git", ["fetch", "--no-tags", "--depth=2147483647", "origin", target], {
+      capture: true,
+      allowFailure: true,
+    })
+    if (revExists(ref)) return true
+  }
+  return revExists(ref)
+}
+
 function changedFiles() {
   if (!base || !head || isZeroSha(base)) return null
+  if (!ensureRef(base)) {
+    console.warn(
+      `WARNING: could not resolve base ref "${base}". Cannot compute a changed-file diff.`
+    )
+    return null
+  }
   const diff = run("git", ["diff", "--name-only", `${base}...${head}`], {
     capture: true,
     allowFailure: true,
   })
-  if (!diff.ok) return null
-  return diff.stdout.split("\n").map((line) => line.trim()).filter(Boolean)
+  if (!diff.ok) {
+    console.warn(`WARNING: \`git diff ${base}...${head}\` failed; cannot compute affected apps.`)
+    return null
+  }
+  const files = diff.stdout.split("\n").map((line) => line.trim()).filter(Boolean)
+  console.log(`Changed files (${base}...${head}): ${files.length ? files.join(", ") : "(none)"}`)
+  return files
 }
 
 function directlyChangedProjects(files) {
@@ -102,14 +139,27 @@ function directlyChangedProjects(files) {
 }
 
 function affectedProjects() {
-  // Force a full fan-out only when explicitly requested (--all) or when we
-  // cannot compute a reliable diff (first deploy, or a missing/zero base SHA).
-  if (forceAll || !base || !head || isZeroSha(base)) return orderedProjects
+  // A full fan-out (every app built, deployed, and QA'd) is expensive, so it is
+  // ONLY allowed on an explicit --all, or when there is genuinely no base to
+  // diff against (a true first deploy with a missing/zero base SHA).
+  if (forceAll) return orderedProjects
+  if (!base || isZeroSha(base)) {
+    console.log("No usable base SHA provided; treating as first deploy (all apps).")
+    return orderedProjects
+  }
+  if (!head) throw new Error("A --head ref is required to compute affected apps.")
 
   const files = changedFiles()
-  // If the diff itself could not be computed, fall back to deploying everything
-  // rather than silently skipping a real change.
-  if (!files) return orderedProjects
+  // If a base WAS provided but the diff could not be computed, fail loudly
+  // instead of silently fanning out to every app. A misconfigured base must
+  // surface as a cheap failed job — never as a full-fleet deploy + QA run.
+  if (!files) {
+    throw new Error(
+      `Could not compute changed files for ${base}...${head}. Refusing to ` +
+        "deploy/QA all apps. Ensure the base commit is fetched (full history) " +
+        "and that --base is a valid SHA, or pass --all to force a full run."
+    )
+  }
 
   // Each app under apps/<name> is fully self-contained (its own build output and
   // Netlify functions, with no shared libs), so an app is "affected" only when a

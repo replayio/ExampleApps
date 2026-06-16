@@ -8,7 +8,7 @@ const audience = import.meta.env.VITE_AUTH0_AUDIENCE
 
 const STATE_KEY = "auth0_state"
 
-function login() {
+export function login() {
   const state = crypto.randomUUID()
   sessionStorage.setItem(STATE_KEY, state)
   const params = new URLSearchParams({

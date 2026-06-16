@@ -33,7 +33,7 @@ export function useCreateTask() {
   return useMutation({
     mutationFn: (input: Partial<Task>) => api.createTask(input),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["task"] })
+      qc.invalidateQueries({ queryKey: ["tasks"] })
     },
   })
 }
@@ -44,7 +44,7 @@ export function useUpdateTask() {
     mutationFn: ({ id, patch }: { id: string; patch: Partial<Task> }) =>
       api.updateTask(id, patch),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["task"] })
+      qc.invalidateQueries({ queryKey: ["tasks"] })
     },
   })
 }
@@ -54,7 +54,7 @@ export function useDeleteTask() {
   return useMutation({
     mutationFn: (id: string) => api.deleteTask(id),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["task"] })
+      qc.invalidateQueries({ queryKey: ["tasks"] })
     },
   })
 }

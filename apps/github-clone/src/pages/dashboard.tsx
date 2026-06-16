@@ -3,6 +3,7 @@ import { formatDistanceToNow } from "date-fns"
 import { GitFork, Loader2, Star } from "lucide-react"
 
 import { ApiError, api } from "@/lib/api"
+import { login } from "@/components/auth-provider"
 import { ExploreRepos } from "@/components/explore-repos"
 import { GithubIcon } from "@/components/github-icon"
 import { formatBytes, languageColor } from "@/lib/lang"
@@ -52,20 +53,27 @@ export function Dashboard({ onMirror }: { onMirror: () => void }) {
                   : "Something went wrong while loading your repositories. Please try again."}
               </p>
             </div>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => mirrored.refetch()}
-              disabled={mirrored.isFetching}
-            >
-              {mirrored.isFetching ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" /> Retrying…
-                </>
-              ) : (
-                "Retry"
+            <div className="flex items-center gap-2">
+              {isAuth && (
+                <Button size="sm" onClick={login}>
+                  <GithubIcon className="size-4" /> Sign in with GitHub
+                </Button>
               )}
-            </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => mirrored.refetch()}
+                disabled={mirrored.isFetching}
+              >
+                {mirrored.isFetching ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" /> Retrying…
+                  </>
+                ) : (
+                  "Retry"
+                )}
+              </Button>
+            </div>
           </div>
           {isAuth && <ExploreRepos />}
           </>

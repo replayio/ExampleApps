@@ -63,7 +63,7 @@ function BestsellerRow({ publication }: { publication: Publication }) {
       </div>
       <button
         onClick={() => subscribe.mutate(publication.id)}
-        className="rounded-lg bg-[#ffe0d0] px-3 py-2 text-[16px] font-bold text-[#ff6719]"
+        className="rounded-lg bg-[#ffe0d0] px-3 py-2 text-[16px] font-bold text-[#9a3412]"
       >
         {publication.subscribed ? "Subscribed" : "Subscribe"}
       </button>

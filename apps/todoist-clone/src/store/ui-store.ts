@@ -59,13 +59,10 @@ export const useUIStore = create<UIState>((set) => ({
   toggleLabel: (id) =>
     set((state) => {
       const labels = state.activeLabels
-      const idx = labels.indexOf(id)
-      if (idx >= 0) {
-        labels.splice(idx, 1)
-      } else {
-        labels.push(id)
-      }
-      return { activeLabels: labels }
+      const next = labels.includes(id)
+        ? labels.filter((l) => l !== id)
+        : [...labels, id]
+      return { activeLabels: next }
     }),
 
   setPriorityFilter: (p) => set({ priorityFilter: p }),

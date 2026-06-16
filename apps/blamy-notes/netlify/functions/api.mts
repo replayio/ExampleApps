@@ -10,6 +10,13 @@ import {
   userProfile,
 } from "./lib/github.ts"
 import { GithubNotConnectedError, githubTokenForUser } from "./lib/auth0-vault.ts"
+import {
+  createNote,
+  deleteNote,
+  getNote,
+  listNotes,
+  updateNote,
+} from "./lib/notes.ts"
 
 const json = (data: unknown, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -218,6 +225,53 @@ function githubError(e: unknown): Response {
   return json({ error: String(e) }, 502)
 }
 
+// Authenticated CRUD for the user's own markdown notes, persisted in Netlify
+// Blobs and namespaced by `sub` so each account's notes are private.
+async function handleNotes(
+  req: Request,
+  path: string,
+  sub: string
+): Promise<Response> {
+  const rest = path.replace(/^\/notes/, "") // "" | "/" | "/:id"
+  const id = rest.replace(/^\//, "")
+
+  if (!id) {
+    if (req.method === "GET") return json(await listNotes(sub))
+    if (req.method === "POST") {
+      const body = (await req.json()) as { title?: string; content?: string }
+      if (typeof body.content !== "string") {
+        return json({ error: "content required" }, 400)
+      }
+      const note = await createNote(sub, body.title ?? "", body.content)
+      return json(
+        { id: note.id, source: "db", title: note.title, updatedAt: note.updatedAt },
+        201
+      )
+    }
+    return json({ error: "method not allowed" }, 405)
+  }
+
+  if (req.method === "GET") {
+    const note = await getNote(sub, id)
+    if (!note) return json({ error: "not found" }, 404)
+    return json({ content: note.content })
+  }
+  if (req.method === "PUT") {
+    const body = (await req.json()) as { title?: string; content?: string }
+    const note = await updateNote(sub, id, {
+      title: body.title,
+      content: body.content,
+    })
+    if (!note) return json({ error: "not found" }, 404)
+    return json({ ok: true })
+  }
+  if (req.method === "DELETE") {
+    await deleteNote(sub, id)
+    return json({ ok: true })
+  }
+  return json({ error: "method not allowed" }, 405)
+}
+
 async function handleGithub(req: Request, path: string): Promise<Response> {
   const sub = path.replace(/^\/github/, "") || "/"
 
@@ -311,9 +365,14 @@ export default async (req: Request, _context: Context) => {
   const session = await ensureSession(req)
   if (session.failed) return session.failed
 
-  const res = path.startsWith("/github")
-    ? await handleGithub(req, path)
-    : json({ error: "not found", path }, 404)
+  let res: Response
+  if (path.startsWith("/github")) {
+    res = await handleGithub(req, path)
+  } else if (path === "/notes" || path.startsWith("/notes/")) {
+    res = await handleNotes(req, path, session.sub!)
+  } else {
+    res = json({ error: "not found", path }, 404)
+  }
 
   // Propagate any silently-refreshed session cookies.
   for (const c of session.cookies) res.headers.append("set-cookie", c)

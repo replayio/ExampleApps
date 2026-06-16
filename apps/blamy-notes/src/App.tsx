@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { useQuery } from "@tanstack/react-query"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   Book,
   Check,
@@ -13,7 +13,9 @@ import {
   Loader2,
   LogOut,
   PenLine,
+  Plus,
   Search,
+  Trash2,
   X,
 } from "lucide-react"
 import { toast } from "sonner"
@@ -23,10 +25,33 @@ import { DocsRenderer } from "@/docs/DocsRenderer"
 import { parseMarkdown } from "@/gitbook/parse"
 import { api } from "@/lib/api"
 import { setAssetBase } from "@/lib/assets"
+import {
+  DbNotesStorage,
+  LocalNotesStorage,
+  deriveTitle,
+  type NotesStorage,
+} from "@/lib/storage"
+import { syncLocalNotesToDb } from "@/lib/sync"
+import { useAuth } from "@/components/auth-provider"
+import { LocalModeBanner } from "@/components/local-mode-banner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
 type View = "edit" | "preview" | "markdown"
+
+// One markdown content model, three persistence backends. Git keeps its
+// repo/file selection; local and DB notes are flat lists keyed by id.
+type Selection =
+  | { kind: "flat"; source: "local" | "db"; id: string }
+  | { kind: "git"; repo: string; filePath: string }
+
+const NEW_NOTE_TEMPLATE = "# Untitled\n\n"
+
+// Module-level singletons — the storage adapters are stateless.
+const localStore = new LocalNotesStorage()
+const dbStore = new DbNotesStorage()
+const storageFor = (source: "local" | "db"): NotesStorage =>
+  source === "local" ? localStore : dbStore
 
 
 // ---------- File tree ----------
@@ -109,12 +134,30 @@ function FileTree({
 // ---------- App ----------
 
 export default function App() {
-  const [repo, setRepo] = useState<string | null>(null)
-  const [filePath, setFilePath] = useState<string | null>(null)
+  const { status, logout } = useAuth()
+  const isGuest = status === "guest"
+  const isAuthed = status === "authenticated"
+  // The flat-note store the "New note" action writes into: localStorage for
+  // guests, the per-user DB for authenticated users.
+  const flatSource: "local" | "db" = isGuest ? "local" : "db"
+  const queryClient = useQueryClient()
+
+  const [selection, setSelection] = useState<Selection | null>(null)
+  const [expandedRepo, setExpandedRepo] = useState<string | null>(null)
   const [view, setView] = useState<View>("edit")
   const [owner, setOwner] = useState<string | null>(null)
   const [ownerMenuOpen, setOwnerMenuOpen] = useState(false)
   const [search, setSearch] = useState("")
+
+  const gitSel = selection?.kind === "git" ? selection : null
+  const flatSel = selection?.kind === "flat" ? selection : null
+
+  // Flat notes (local or DB) for the active store.
+  const notesQuery = useQuery({
+    queryKey: ["notes", flatSource],
+    queryFn: () => storageFor(flatSource).list(),
+    enabled: isGuest || isAuthed,
+  })
 
   // Repos come from the logged-in user's own GitHub identity (Auth0 Token
   // Vault exchanges the session's refresh token for their GitHub token).
@@ -123,12 +166,14 @@ export default function App() {
     queryFn: api.githubRepos,
     staleTime: 5 * 60_000,
     retry: false,
+    enabled: isAuthed,
   })
   const profile = useQuery({
     queryKey: ["profile"],
     queryFn: api.githubProfile,
     staleTime: 10 * 60_000,
     retry: false,
+    enabled: isAuthed,
   })
   const allRepos = useMemo(() => reposQuery.data ?? [], [reposQuery.data])
   const githubNotConnected =
@@ -166,68 +211,182 @@ export default function App() {
   }, [allRepos, activeOwner, search])
 
   const tree = useQuery({
-    queryKey: ["tree", repo],
-    queryFn: () => api.repoTree(repo!),
-    enabled: !!repo,
+    queryKey: ["tree", expandedRepo],
+    queryFn: () => api.repoTree(expandedRepo!),
+    enabled: !!expandedRepo,
     staleTime: 60_000,
   })
 
   const file = useQuery({
-    queryKey: ["file", repo, filePath],
-    queryFn: () => api.repoFile(repo!, filePath!),
-    enabled: !!repo && !!filePath,
+    queryKey: ["file", gitSel?.repo, gitSel?.filePath],
+    queryFn: () => api.repoFile(gitSel!.repo, gitSel!.filePath),
+    enabled: !!gitSel,
   })
 
-  // Local editing buffer; synced to GitHub only on demand.
+  const note = useQuery({
+    queryKey: ["note", flatSel?.source, flatSel?.id],
+    queryFn: () => storageFor(flatSel!.source).get(flatSel!.id),
+    enabled: !!flatSel,
+  })
+
+  // Shared markdown editing buffer across all three sources.
   const [markdown, setMarkdown] = useState("")
   const [dirty, setDirty] = useState(false)
   const [syncing, setSyncing] = useState<"main" | "pr" | null>(null)
 
+  // Keep latest buffer + selection in refs so the autosave flush never reads
+  // a stale closure when the user switches notes mid-edit.
+  const markdownRef = useRef(markdown)
+  const dirtyRef = useRef(dirty)
+  const flatSelRef = useRef(flatSel)
   useEffect(() => {
-    if (file.data) {
+    markdownRef.current = markdown
+    dirtyRef.current = dirty
+    flatSelRef.current = flatSel
+  })
+
+  useEffect(() => {
+    if (gitSel && file.data) {
       setMarkdown(file.data.content)
       setDirty(false)
     }
-  }, [file.data])
+  }, [gitSel, file.data])
 
-  // Relative image srcs in the file resolve against the repo's raw URL.
   useEffect(() => {
-    setAssetBase(repo, tree.data?.branch ?? null, filePath)
-  }, [repo, tree.data?.branch, filePath])
+    if (flatSel && note.data) {
+      setMarkdown(note.data.content)
+      setDirty(false)
+    }
+  }, [flatSel, note.data])
+
+  // Relative image srcs in a git file resolve against the repo's raw URL.
+  // Flat notes have no repo, so the base is cleared.
+  useEffect(() => {
+    if (gitSel) setAssetBase(gitSel.repo, tree.data?.branch ?? null, gitSel.filePath)
+    else setAssetBase(null, null, null)
+  }, [gitSel, tree.data?.branch])
+
+  // On the first render as an authenticated user, upload any notes that were
+  // created earlier in guest mode, then clear them locally. Guarded so it runs
+  // at most once per session.
+  const syncRan = useRef(false)
+  useEffect(() => {
+    if (!isAuthed || syncRan.current) return
+    syncRan.current = true
+    localStore.list().then(async (pending) => {
+      if (pending.length === 0) return
+      const { synced, failed } = await syncLocalNotesToDb()
+      if (synced > 0) {
+        toast.success(`Synced ${synced} note${synced === 1 ? "" : "s"} to your account`)
+        queryClient.invalidateQueries({ queryKey: ["notes", "db"] })
+      }
+      if (failed > 0) {
+        toast.error(
+          `${failed} note${failed === 1 ? "" : "s"} couldn't be synced and stay on this device`
+        )
+      }
+    })
+  }, [isAuthed, queryClient])
 
   const handleChange = useCallback((md: string) => {
     setMarkdown(md)
     setDirty(true)
   }, [])
 
-  const selectRepo = (r: string) => {
-    if (dirty && !window.confirm("Discard unsaved changes?")) return
-    setRepo(r === repo ? null : r)
-    setFilePath(null)
+  // Persist a flat note's pending edits immediately (used before switching
+  // notes and on the debounce timer).
+  const flushFlat = useCallback(() => {
+    const sel = flatSelRef.current
+    if (!sel || !dirtyRef.current) return
+    const md = markdownRef.current
+    storageFor(sel.source)
+      .save(sel.id, md, deriveTitle(md))
+      .then(() => queryClient.invalidateQueries({ queryKey: ["notes", sel.source] }))
+      .catch((e) => toast.error(String(e instanceof Error ? e.message : e)))
+  }, [queryClient])
+
+  // Debounced autosave for flat notes (git notes commit on demand instead).
+  useEffect(() => {
+    if (!flatSel || !dirty) return
+    const t = setTimeout(async () => {
+      try {
+        await storageFor(flatSel.source).save(flatSel.id, markdown, deriveTitle(markdown))
+        setDirty(false)
+        queryClient.invalidateQueries({ queryKey: ["notes", flatSel.source] })
+      } catch (e) {
+        toast.error(String(e instanceof Error ? e.message : e))
+      }
+    }, 700)
+    return () => clearTimeout(t)
+  }, [markdown, dirty, flatSel, queryClient])
+
+  const confirmDiscardGit = () =>
+    !gitSel || !dirty || window.confirm("Discard unsaved changes?")
+
+  const selectGitFile = (path: string) => {
+    if (!confirmDiscardGit()) return
+    flushFlat()
+    setSelection({ kind: "git", repo: expandedRepo!, filePath: path })
     setDirty(false)
   }
 
-  const selectFile = (path: string) => {
-    if (dirty && !window.confirm("Discard unsaved changes?")) return
-    setFilePath(path)
+  const toggleRepo = (r: string) => {
+    if (!confirmDiscardGit()) return
+    setExpandedRepo((cur) => (cur === r ? null : r))
+  }
+
+  const selectNote = (source: "local" | "db", id: string) => {
+    if (!confirmDiscardGit()) return
+    flushFlat()
+    setSelection({ kind: "flat", source, id })
     setDirty(false)
+  }
+
+  const createNote = async () => {
+    if (!confirmDiscardGit()) return
+    flushFlat()
+    try {
+      const ref = await storageFor(flatSource).create("Untitled", NEW_NOTE_TEMPLATE)
+      await queryClient.invalidateQueries({ queryKey: ["notes", flatSource] })
+      setSelection({ kind: "flat", source: flatSource, id: ref.id })
+      setMarkdown(NEW_NOTE_TEMPLATE)
+      setDirty(false)
+    } catch (e) {
+      toast.error(String(e instanceof Error ? e.message : e))
+    }
+  }
+
+  const removeNote = async (source: "local" | "db", id: string) => {
+    if (!window.confirm("Delete this note?")) return
+    try {
+      await storageFor(source).remove(id)
+      if (flatSel?.id === id) {
+        setSelection(null)
+        setMarkdown("")
+        setDirty(false)
+      }
+      queryClient.invalidateQueries({ queryKey: ["notes", source] })
+    } catch (e) {
+      toast.error(String(e instanceof Error ? e.message : e))
+    }
   }
 
   const [pendingMode, setPendingMode] = useState<"main" | "pr" | null>(null)
   const [commitMessage, setCommitMessage] = useState("")
 
   const openSyncPanel = (mode: "main" | "pr") => {
-    setCommitMessage(`docs: update ${filePath}`)
+    if (!gitSel) return
+    setCommitMessage(`docs: update ${gitSel.filePath}`)
     setPendingMode(mode)
   }
 
   const sync = async (mode: "main" | "pr", message: string) => {
-    if (!repo || !filePath || !file.data || !message) return
+    if (!gitSel || !file.data || !message) return
     setPendingMode(null)
     setSyncing(mode)
     try {
-      const result = await api.repoSave(repo, {
-        path: filePath,
+      const result = await api.repoSave(gitSel.repo, {
+        path: gitSel.filePath,
         content: markdown,
         message,
         mode,
@@ -251,16 +410,19 @@ export default function App() {
     }
   }
 
-  const logout = async () => {
-    await api.logout()
-    window.location.reload()
-  }
+  const notes = notesQuery.data ?? []
+  const flatLabel = isGuest ? "Saved (this device)" : "Saved notes"
+  const headerTitle = gitSel
+    ? gitSel.filePath
+    : flatSel
+      ? notes.find((n) => n.id === flatSel.id)?.title ?? "Untitled"
+      : null
 
   return (
     <div className="gb-app">
       <aside className="gb-sidebar">
         <div className="gb-sidebar-head">
-          {activeOwner ? (
+          {isAuthed && activeOwner ? (
             <button className="gb-owner-switch" onClick={() => setOwnerMenuOpen((o) => !o)}>
               <img className="gb-owner-avatar" src={activeOwner.avatar} alt="" />
               <span className="font-semibold truncate">{activeOwner.login}</span>
@@ -281,8 +443,7 @@ export default function App() {
                   onClick={() => {
                     setOwner(o.login)
                     setOwnerMenuOpen(false)
-                    setRepo(null)
-                    setFilePath(null)
+                    setExpandedRepo(null)
                   }}
                 >
                   <img className="gb-owner-avatar" src={o.avatar} alt="" />
@@ -296,107 +457,159 @@ export default function App() {
           )}
         </div>
 
-        <div className="gb-sidebar-search">
-          <Search className="size-3.5" />
-          <input
-            value={search}
-            placeholder="Find repositories…"
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          {search && (
-            <button onClick={() => setSearch("")} title="Clear">
-              <X className="size-3.5" />
-            </button>
-          )}
-        </div>
+        {isAuthed && (
+          <div className="gb-sidebar-search">
+            <Search className="size-3.5" />
+            <input
+              value={search}
+              placeholder="Find repositories…"
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            {search && (
+              <button onClick={() => setSearch("")} title="Clear">
+                <X className="size-3.5" />
+              </button>
+            )}
+          </div>
+        )}
 
         <div className="gb-sidebar-scroll">
-          <div className="gb-section-label">Repositories</div>
-          {reposQuery.isLoading && (
-            <div className="gb-sidebar-note">Loading repositories…</div>
-          )}
-          {githubNotConnected && (
-            <div className="gb-sidebar-note">
-              This login isn't connected to GitHub. Log out and sign in with{" "}
-              <strong>Continue with GitHub</strong> to see your repositories.
-            </div>
-          )}
-          {reposQuery.isError && !githubNotConnected && (
-            <div className="gb-sidebar-note">
-              <div>
-                Couldn't load your repositories. Please sign in again and retry.
-              </div>
-              <button
-                className="gb-retry-btn"
-                onClick={() => reposQuery.refetch()}
-              >
-                Retry
+          {(isGuest || isAuthed) && (
+            <>
+              <div className="gb-section-label">{flatLabel}</div>
+              <button className="gb-new-note" onClick={createNote}>
+                <Plus className="size-3.5" /> New note
               </button>
-            </div>
-          )}
-          {reposQuery.data && repos.length === 0 && (
-            <div className="gb-sidebar-note">
-              {search
-                ? `No repositories match “${search}”.`
-                : `No repositories in ${activeOwner?.login ?? "this org"}.`}
-            </div>
-          )}
-          {repos.map((r) => {
-            const [repoOwner, name] = r.split("/")
-            const active = r === repo
-            const foreign = searching && repoOwner !== activeOwner?.login
-            return (
-              <div key={r}>
-                <button
-                  className={`repo-item ${active ? "repo-item-active" : ""}`}
-                  onClick={() => selectRepo(r)}
+              {notesQuery.isLoading && (
+                <div className="gb-sidebar-note">Loading notes…</div>
+              )}
+              {notesQuery.isError && (
+                <div className="gb-sidebar-note">Couldn't load your notes.</div>
+              )}
+              {notesQuery.data && notes.length === 0 && (
+                <div className="gb-sidebar-note">
+                  No notes yet — create one to get started.
+                </div>
+              )}
+              {notes.map((n) => (
+                <div
+                  key={n.id}
+                  className={`note-item ${flatSel?.id === n.id ? "note-item-active" : ""}`}
+                  onClick={() => selectNote(flatSource, n.id)}
                 >
-                  {active ? (
-                    <ChevronDown className="size-3.5 shrink-0" />
-                  ) : (
-                    <ChevronRight className="size-3.5 shrink-0" />
-                  )}
-                  <GitBranch className="size-3.5 shrink-0" />
-                  <span className="truncate">{name}</span>
-                  {foreign && <span className="repo-owner">{repoOwner}</span>}
-                </button>
-                {active && (
-                  <div className="repo-tree">
-                    {tree.isLoading && <div className="gb-sidebar-note">Loading files…</div>}
-                    {tree.data && tree.data.files.length === 0 && (
-                      <div className="gb-sidebar-note">No markdown files</div>
-                    )}
-                    {tree.data && (
-                      <FileTree
-                        node={buildTree(tree.data.files)}
-                        depth={0}
-                        selected={filePath}
-                        onSelect={selectFile}
-                      />
+                  <FileText className="size-3.5 shrink-0" />
+                  <span className="note-title">{n.title}</span>
+                  <button
+                    className="note-delete"
+                    title="Delete note"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      removeNote(flatSource, n.id)
+                    }}
+                  >
+                    <Trash2 className="size-3.5" />
+                  </button>
+                </div>
+              ))}
+            </>
+          )}
+
+          {isAuthed && (
+            <>
+              <div className="gb-section-label">Git repos</div>
+              {reposQuery.isLoading && (
+                <div className="gb-sidebar-note">Loading repositories…</div>
+              )}
+              {githubNotConnected && (
+                <div className="gb-sidebar-note">
+                  This login isn't connected to GitHub. Log out and sign in with{" "}
+                  <strong>Continue with GitHub</strong> to see your repositories.
+                </div>
+              )}
+              {reposQuery.isError && !githubNotConnected && (
+                <div className="gb-sidebar-note">
+                  <div>
+                    Couldn't load your repositories. Please sign in again and retry.
+                  </div>
+                  <button className="gb-retry-btn" onClick={() => reposQuery.refetch()}>
+                    Retry
+                  </button>
+                </div>
+              )}
+              {reposQuery.data && repos.length === 0 && (
+                <div className="gb-sidebar-note">
+                  {search
+                    ? `No repositories match “${search}”.`
+                    : `No repositories in ${activeOwner?.login ?? "this org"}.`}
+                </div>
+              )}
+              {repos.map((r) => {
+                const [repoOwner, name] = r.split("/")
+                const active = r === expandedRepo
+                const foreign = searching && repoOwner !== activeOwner?.login
+                return (
+                  <div key={r}>
+                    <button
+                      className={`repo-item ${active ? "repo-item-active" : ""}`}
+                      onClick={() => toggleRepo(r)}
+                    >
+                      {active ? (
+                        <ChevronDown className="size-3.5 shrink-0" />
+                      ) : (
+                        <ChevronRight className="size-3.5 shrink-0" />
+                      )}
+                      <GitBranch className="size-3.5 shrink-0" />
+                      <span className="truncate">{name}</span>
+                      {foreign && <span className="repo-owner">{repoOwner}</span>}
+                    </button>
+                    {active && (
+                      <div className="repo-tree">
+                        {tree.isLoading && (
+                          <div className="gb-sidebar-note">Loading files…</div>
+                        )}
+                        {tree.data && tree.data.files.length === 0 && (
+                          <div className="gb-sidebar-note">No markdown files</div>
+                        )}
+                        {tree.data && (
+                          <FileTree
+                            node={buildTree(tree.data.files)}
+                            depth={0}
+                            selected={gitSel?.filePath ?? null}
+                            onSelect={selectGitFile}
+                          />
+                        )}
+                      </div>
                     )}
                   </div>
-                )}
-              </div>
-            )
-          })}
+                )
+              })}
+            </>
+          )}
         </div>
 
         <div className="gb-sidebar-foot">
-          <Button variant="ghost" size="sm" onClick={logout}>
-            <LogOut className="size-4" /> Log out
-          </Button>
+          {isGuest ? (
+            <Button variant="ghost" size="sm" onClick={logout}>
+              <LogOut className="size-4" /> Exit guest mode
+            </Button>
+          ) : (
+            <Button variant="ghost" size="sm" onClick={logout}>
+              <LogOut className="size-4" /> Log out
+            </Button>
+          )}
         </div>
       </aside>
 
       <main className="gb-main">
+        <LocalModeBanner />
         <header className="gb-header">
           <span className="gb-file-path">
-            {filePath ? (
+            {headerTitle ? (
               <>
-                <FileText className="size-4" /> {filePath}
+                <FileText className="size-4" /> {headerTitle}
               </>
             ) : (
-              <span className="text-muted-foreground">No file selected</span>
+              <span className="text-muted-foreground">No note selected</span>
             )}
           </span>
           <div className="gb-view-tabs">
@@ -416,7 +629,22 @@ export default function App() {
               </button>
             ))}
           </div>
-          {filePath && (
+          {flatSel && (
+            <div className="gb-sync">
+              <span className={`gb-sync-state ${dirty ? "gb-sync-dirty" : ""}`}>
+                {dirty ? (
+                  <>
+                    <Loader2 className="size-3.5 animate-spin" /> Saving…
+                  </>
+                ) : (
+                  <>
+                    <Check className="size-3.5" /> Saved
+                  </>
+                )}
+              </span>
+            </div>
+          )}
+          {gitSel && (
             <div className="gb-sync">
               <span className={`gb-sync-state ${dirty ? "gb-sync-dirty" : ""}`}>
                 {dirty ? (
@@ -452,7 +680,7 @@ export default function App() {
           )}
         </header>
 
-        {pendingMode && (
+        {pendingMode && gitSel && (
           <div className="gb-commit-panel">
             <Input
               autoFocus
@@ -475,17 +703,23 @@ export default function App() {
         )}
 
         <div className="gb-content">
-          {!repo ? (
-            <div className="gb-empty">Select a repository to browse its markdown files.</div>
-          ) : !filePath ? (
-            <div className="gb-empty">Select a markdown file from the tree.</div>
-          ) : file.isLoading ? (
-            <div className="gb-empty">Loading {filePath}…</div>
-          ) : file.isError ? (
+          {!selection ? (
+            <div className="gb-empty">
+              {isGuest
+                ? "Create a note to get started — it's saved in this browser."
+                : "Select a saved note, or a markdown file from a repository."}
+            </div>
+          ) : gitSel && file.isLoading ? (
+            <div className="gb-empty">Loading {gitSel.filePath}…</div>
+          ) : gitSel && file.isError ? (
             <div className="gb-empty">Failed to load file: {String(file.error)}</div>
+          ) : flatSel && note.isLoading ? (
+            <div className="gb-empty">Loading note…</div>
+          ) : flatSel && note.isError ? (
+            <div className="gb-empty">Failed to load note: {String(note.error)}</div>
           ) : view === "edit" ? (
             <GitbookEditor
-              key={`${repo}:${filePath}`}
+              key={gitSel ? `${gitSel.repo}:${gitSel.filePath}` : `${flatSel!.source}:${flatSel!.id}`}
               markdown={markdown}
               onChange={handleChange}
             />

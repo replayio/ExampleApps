@@ -92,15 +92,6 @@ function changedFiles() {
   return diff.stdout.split("\n").map((line) => line.trim()).filter(Boolean)
 }
 
-function touchesGlobalBuildSurface(files) {
-  return files.some((file) =>
-    file === "package.json" ||
-    file === "package-lock.json" ||
-    file === "nx.json" ||
-    file === "tools/netlify/sites.json"
-  )
-}
-
 function directlyChangedProjects(files) {
   const projectSet = new Set()
   for (const file of files) {
@@ -111,29 +102,20 @@ function directlyChangedProjects(files) {
 }
 
 function affectedProjects() {
+  // Force a full fan-out only when explicitly requested (--all) or when we
+  // cannot compute a reliable diff (first deploy, or a missing/zero base SHA).
   if (forceAll || !base || !head || isZeroSha(base)) return orderedProjects
 
   const files = changedFiles()
-  if (!files || touchesGlobalBuildSurface(files)) return orderedProjects
+  // If the diff itself could not be computed, fall back to deploying everything
+  // rather than silently skipping a real change.
+  if (!files) return orderedProjects
 
-  const directProjects = directlyChangedProjects(files)
-  if (directProjects.length > 0) return directProjects
-  if (!files.some((file) => file.startsWith("apps/"))) return []
-
-  const nxArgs = [
-    "nx",
-    "show",
-    "projects",
-    "--affected",
-    "--withTarget=build",
-    `--base=${base}`,
-    `--head=${head}`,
-    "--json",
-  ]
-  const result = run("npx", nxArgs, { capture: true })
-  const affected = parseJsonOutput(result.stdout)
-  const projectSet = new Set(affected.filter((project) => sites[project]))
-  return orderedProjects.filter((project) => projectSet.has(project))
+  // Each app under apps/<name> is fully self-contained (its own build output and
+  // Netlify functions, with no shared libs), so an app is "affected" only when a
+  // file inside its own directory changes. Changes to root tooling, lockfiles,
+  // or nx.json no longer force a redeploy + Replay QA run of every app.
+  return directlyChangedProjects(files)
 }
 
 function buildProject(project) {

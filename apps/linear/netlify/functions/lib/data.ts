@@ -80,7 +80,7 @@ export const labels: Label[] = [
   { id: "docs", name: "Documentation", color: "#95a2b3" },
 ]
 
-export const issues: Issue[] = [
+export const SEED_ISSUES: Issue[] = [
   {
     id: "i1",
     identifier: "ENG-142",
@@ -196,16 +196,14 @@ export const issues: Issue[] = [
   },
 ]
 
-const counters: Record<string, number> = {
+export const SEED_COUNTERS: Record<string, number> = {
   ENG: 147,
   DES: 24,
   OPS: 8,
 }
 
-export function makeIssue(teamKey: string, teamId: string): Issue {
-  counters[teamKey] = (counters[teamKey] ?? 0) + 1
-  const num = counters[teamKey]
-  const id = `i${Date.now()}`
+export function makeIssue(teamKey: string, teamId: string, num: number): Issue {
+  const id = `i${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
   const now = new Date().toISOString()
   return {
     id,

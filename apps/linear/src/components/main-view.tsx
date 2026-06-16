@@ -1,8 +1,9 @@
-import { Filter, Plus, SlidersHorizontal } from "lucide-react"
+import { Plus, SlidersHorizontal } from "lucide-react"
 import { useUIStore } from "@/store/ui-store"
 import { useIssues, useProjects, useTeams } from "@/queries/issues"
-import { filterIssuesForView } from "@/lib/issue-filters"
+import { applyIssueFilters, countActiveFilters } from "@/lib/issue-filters"
 import { IssueList } from "@/components/issue-list"
+import { IssueFilterPopover } from "@/components/issue-filter-popover"
 import { SearchView } from "@/components/search-view"
 import { Button } from "@/components/ui/button"
 
@@ -33,6 +34,8 @@ function useViewTitle() {
 export function MainView() {
   const view = useUIStore((s) => s.view)
   const setAddIssueOpen = useUIStore((s) => s.setAddIssueOpen)
+  const filters = useUIStore((s) => s.filters)
+  const clearFilters = useUIStore((s) => s.clearFilters)
   const { title, subtitle } = useViewTitle()
 
   const { data: issues = [], isLoading } = useIssues(view)
@@ -41,7 +44,8 @@ export function MainView() {
     return <SearchView />
   }
 
-  const filtered = filterIssuesForView(issues, view)
+  const filtered = applyIssueFilters(issues, view, filters)
+  const hasActiveFilters = countActiveFilters(filters) > 0
 
   return (
     <div className="flex h-full flex-col bg-[#0d0d0d]">
@@ -53,9 +57,7 @@ export function MainView() {
           )}
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground">
-            <Filter className="size-3.5" /> Filter
-          </Button>
+          <IssueFilterPopover />
           <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground">
             <SlidersHorizontal className="size-3.5" /> Display
           </Button>
@@ -74,6 +76,13 @@ export function MainView() {
           <p className="py-10 text-center text-sm text-muted-foreground">
             Loading…
           </p>
+        ) : filtered.length === 0 && hasActiveFilters ? (
+          <div className="flex flex-col items-center justify-center gap-2 py-20 text-center text-sm text-muted-foreground">
+            <p>No issues match the active filters.</p>
+            <Button variant="secondary" size="sm" onClick={clearFilters}>
+              Clear filters
+            </Button>
+          </div>
         ) : (
           <IssueList issues={filtered} />
         )}

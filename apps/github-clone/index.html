@@ -4,6 +4,31 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>github-clone</title>
+    <script>
+      // Apply the persisted/system theme class to <html> before first paint.
+      // Without this, the .dark/.light class is only added in a React effect
+      // after the initial render, so the first paint renders with the wrong
+      // theme variables (e.g. a light page using dark-mode --primary/--popover,
+      // which makes the primary button fill and dialog panel render as a
+      // near-invisible / "transparent" surface).
+      (function () {
+        try {
+          var stored = localStorage.getItem("theme")
+          var theme = stored === "dark" || stored === "light" || stored === "system" ? stored : "system"
+          var resolved =
+            theme === "system"
+              ? window.matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light"
+              : theme
+          var root = document.documentElement
+          root.classList.remove("light", "dark")
+          root.classList.add(resolved)
+        } catch (e) {
+          /* no-op: fall back to default light theme */
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -96,7 +96,7 @@ export function Sidebar() {
       <div className="flex items-center justify-between px-3 py-3">
         <button className="flex items-center gap-2 rounded-md px-1.5 py-1 hover:bg-muted">
           <Avatar className="size-7">
-            <AvatarFallback className="bg-[#dc4c3e] text-xs text-white">
+            <AvatarFallback className="bg-[#c43d30] text-xs text-white">
               S
             </AvatarFallback>
           </Avatar>

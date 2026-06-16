@@ -323,7 +323,15 @@ export default function App() {
           )}
           {reposQuery.isError && !githubNotConnected && (
             <div className="gb-sidebar-note">
-              Failed to load repositories: {String(reposQuery.error)}
+              <div>
+                Couldn't load your repositories. Please sign in again and retry.
+              </div>
+              <button
+                className="gb-retry-btn"
+                onClick={() => reposQuery.refetch()}
+              >
+                Retry
+              </button>
             </div>
           )}
           {reposQuery.data && repos.length === 0 && (

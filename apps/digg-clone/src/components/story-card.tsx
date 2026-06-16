@@ -13,6 +13,7 @@ import { timeAgo } from "@/lib/format"
 import type { Story, VoteState } from "@/lib/types"
 import { useToggleSaveStory, useVoteStory } from "@/queries/stories"
 import { useUIStore } from "@/store/ui-store"
+import { useSavedStore } from "@/store/saved-store"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +30,9 @@ export function StoryCard({ story }: { story: Story }) {
   const selectStory = useUIStore((state) => state.selectStory)
   const vote = useVoteStory()
   const save = useToggleSaveStory()
+  // Saved state is tracked client-side (the serverless feed API is stateless),
+  // so reflect the locally-persisted saved set rather than the server flag.
+  const isSaved = useSavedStore((state) => Boolean(state.stories[story.id]))
   const hasImage = story.imageUrl && !imageFailed
 
   const copyLink = async () => {
@@ -67,7 +71,7 @@ export function StoryCard({ story }: { story: Story }) {
           </button>
         </div>
 
-        <div className="flex w-10 shrink-0 justify-end pt-1 text-[16px] text-[#777887]">
+        <div className="flex w-10 shrink-0 justify-end pt-1 text-[16px] text-[#5d5e69]">
           {timeAgo(story.publishedAt)}
         </div>
 
@@ -144,13 +148,13 @@ export function StoryCard({ story }: { story: Story }) {
           </a>
           <button
             aria-label="Save story"
-            onClick={() => save.mutate(story)}
+            onClick={() => save.mutate({ ...story, saved: isSaved })}
             className={cn(
               "transition-colors hover:text-[#17181f]",
-              story.saved && "text-[#17181f]"
+              isSaved && "text-[#17181f]"
             )}
           >
-            <Bookmark className="size-5" fill={story.saved ? "currentColor" : "none"} />
+            <Bookmark className="size-5" fill={isSaved ? "currentColor" : "none"} />
           </button>
           <button
             aria-label="Share story"
@@ -172,8 +176,10 @@ export function StoryCard({ story }: { story: Story }) {
                 View story
               </DropdownMenuItem>
               <DropdownMenuItem onClick={copyLink}>Copy link</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => save.mutate(story)}>
-                {story.saved ? "Remove from saved" : "Save story"}
+              <DropdownMenuItem
+                onClick={() => save.mutate({ ...story, saved: isSaved })}
+              >
+                {isSaved ? "Remove from saved" : "Save story"}
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <a href={story.url} target="_blank" rel="noreferrer">

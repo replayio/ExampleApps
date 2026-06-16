@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { api } from "@/lib/api"
+import { useSavedStore } from "@/store/saved-store"
 import type {
   FeedId,
   FeedResponse,
@@ -95,9 +96,14 @@ export function useVoteStory() {
 
 export function useToggleSaveStory() {
   const qc = useQueryClient()
+  const syncSaved = useSavedStore((state) => state.sync)
   return useMutation({
     mutationFn: (story: Story) => api.toggleSave(story),
     onSuccess: (story) => {
+      // The feed API runs on stateless serverless instances, so the saved flag
+      // set here cannot be relied upon for the "saved" feed. Persist the saved
+      // set client-side so the Saved view is always populated correctly.
+      syncSaved(story)
       patchStoryCaches(qc, story)
     },
   })

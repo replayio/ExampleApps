@@ -69,7 +69,7 @@ export function MainView() {
             </button>
             <button
               onClick={() => setFeedFilter("saved")}
-              className="ml-auto rounded-full bg-[#f4f4f4] px-3 py-1 text-sm"
+              className="ml-auto rounded-full bg-[#f4f4f4] px-3 py-1 text-sm text-[#595959]"
             >
               Saved
             </button>

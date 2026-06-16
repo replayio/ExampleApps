@@ -30,6 +30,7 @@ import {
   type Priority,
 } from "@/lib/types"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { getContrastTextColor } from "@/lib/utils"
 
 function DetailBody({ issue }: { issue: Issue }) {
   const { data: teams = [] } = useTeams()
@@ -163,8 +164,11 @@ function DetailBody({ issue }: { issue: Issue }) {
         <div className="flex items-center gap-2 border-t border-white/6 pt-3 text-sm">
           <Avatar className="size-6">
             <AvatarFallback
-              className="text-[10px] text-white"
-              style={{ backgroundColor: assignee.color }}
+              className="text-[10px]"
+              style={{
+                backgroundColor: assignee.color,
+                color: getContrastTextColor(assignee.color),
+              }}
             >
               {assignee.initials}
             </AvatarFallback>

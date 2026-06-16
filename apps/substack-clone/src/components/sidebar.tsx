@@ -55,7 +55,7 @@ export function Sidebar() {
               <span className="relative flex size-8 items-center justify-center">
                 <Icon className="size-7" />
                 {item.badge && (
-                  <span className="absolute -right-1 -top-2 flex size-6 items-center justify-center rounded-full bg-[#ff6719] text-sm font-bold text-white">
+                  <span className="absolute -right-1 -top-2 flex size-6 items-center justify-center rounded-full bg-[#c2410c] text-sm font-bold text-white">
                     {item.badge}
                   </span>
                 )}

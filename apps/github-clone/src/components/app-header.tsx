@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 
 import { api } from "@/lib/api"
+import { login } from "@/components/auth-provider"
 import { GithubIcon } from "@/components/github-icon"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -21,6 +22,9 @@ export function AppHeader({ onMirror }: { onMirror: () => void }) {
     retry: false,
   })
   const user = profile.data?.user
+  // The profile request rides on the HttpOnly session cookie; if it fails
+  // (e.g. 401) or returns no user, the visitor is signed out.
+  const isSignedIn = !!user
 
   const signOut = async () => {
     await api.logout()
@@ -54,10 +58,16 @@ export function AppHeader({ onMirror }: { onMirror: () => void }) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel className="text-xs text-muted-foreground">
-                {user ? user.login : "Signed in"}
+                {isSignedIn ? user.login : "Not signed in"}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={signOut}>Sign out</DropdownMenuItem>
+              {isSignedIn ? (
+                <DropdownMenuItem onClick={signOut}>Sign out</DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem onClick={login}>
+                  <GithubIcon className="size-3.5" /> Sign in with GitHub
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

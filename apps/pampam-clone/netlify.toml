@@ -2,6 +2,13 @@
   command = "npm run build"
   publish = "dist"
 
+# SPA fallback: client-side routing (react-router BrowserRouter) means deep
+# links like /app must be served index.html with a 200 instead of a 404.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
 [dev]
   command = "npm run dev"
   targetPort = 5173

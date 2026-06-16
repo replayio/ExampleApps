@@ -65,7 +65,7 @@ export function NewPostDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-w-2xl gap-0 overflow-hidden rounded-[24px] p-0">
+      <DialogContent className="max-w-2xl gap-0 overflow-hidden rounded-[24px] bg-white p-0">
         <DialogTitle className="sr-only">New post</DialogTitle>
         <div className="border-b border-[#ececf1] px-6 py-5">
           <h2 className="text-2xl font-black">New post</h2>

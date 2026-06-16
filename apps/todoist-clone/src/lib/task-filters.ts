@@ -9,8 +9,8 @@ interface FilterOpts {
 
 function matchesView(task: Task, view: ViewId): boolean {
   if (view === "completed") {
-    // Completed view.
-    return !task.completed
+    // Completed view shows only completed tasks.
+    return task.completed
   }
 
   if (task.completed) return false

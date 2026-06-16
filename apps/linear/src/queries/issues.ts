@@ -40,7 +40,11 @@ export function useLabels() {
 }
 
 export function useUsers() {
-  return useQuery({ queryKey: ["users"], queryFn: api.getUsers })
+  return useQuery({
+    queryKey: ["users"],
+    queryFn: api.getUsers,
+    staleTime: 5 * 60 * 1000,
+  })
 }
 
 export function useCreateIssue() {
